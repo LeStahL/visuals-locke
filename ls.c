@@ -17,7 +17,7 @@
  */
 
 #define DEBUG // Shader debug i/o
-// #define DEBUG_SHADER // Shader compile and link errors
+#define DEBUG_SHADER // Shader compile and link errors
 #define MIDI // APC40 mkII controls
 // #define RECORD // Compile in recording capabilities
 
@@ -111,53 +111,7 @@ void CALLBACK MidiInProc_apc40mk2(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, 
             button = b3;
             
         if(b4hi == NOTE_ON)
-        {
-            paused = 0;
-            
-//             waveOutReset(hWaveOut);
-            select_button(button);
-            
-            if(button == 0x0)
-            {
-//                 header.lpData = smusic1;
-//                 header.dwBufferLength = 4 * music1_size;
-                
-            }
-            else if(button == 0x1)
-            {
-                int delta = 5. * (double)sample_rate;
-//                 header.lpData = smusic1+delta;
-//                 header.dwBufferLength = 4 * (music1_size-delta);
-            }
-            else if(button == 0x2)
-            {
-                int delta = 49.655 * (double)sample_rate;
-//                 header.lpData = smusic1+delta;
-//                 header.dwBufferLength = 4 * (music1_size-delta);
-            }
-            else if(button == 0x3)
-            {
-                int delta = 82.76 * (double)sample_rate;
-//                 header.lpData = smusic1+delta;
-//                 header.dwBufferLength = 4 * (music1_size-delta);
-            }
-            else if(button == 0x4)
-            {
-                int delta = 99.31 * (double)sample_rate;
-//                 header.lpData = smusic1+delta;
-//                 header.dwBufferLength = 4 * (music1_size-delta);
-            }
-            else if(button == 0x5)
-            {
-                int delta = 112. * (double)sample_rate;
-//                 header.lpData = smusic1+delta;
-//                 header.dwBufferLength = 4 * (music1_size-delta);
-            }
-            
-//             waveOutPrepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
-//             waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
-//             waveOutRestart(hWaveOut);
-            
+        {   
         }
         else if(b4hi == NOTE_OFF)
         {
@@ -271,6 +225,15 @@ void CALLBACK MidiInProc_apc40mk2(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, 
                 else if(channel == 5 && button == 0x07) fader5 = (double)b2/(double)0x7F;
                 else if(channel == 6 && button == 0x07) fader6 = (double)b2/(double)0x7F;
                 else if(channel == 7 && button == 0x07) fader7 = (double)b2/(double)0x7F;
+                
+                if(channel == 0 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
+                if(channel == 1 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
+                if(channel == 2 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
+                if(channel == 3 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
+                if(channel == 4 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
+                if(channel == 5 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
+                if(channel == 6 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
+                if(channel == 7 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
             }
         }
 
@@ -428,6 +391,7 @@ void load_demo()
     {
         if (shader_symbols[symbolIndex].compileStatus != GL_TRUE)
         {
+//             printf("    %s:\n", shader_symbols[symbolIndex].name
             printf("    Compiler Error. Log:\n%s\n\n", shader_symbols[symbolIndex].compilerError);
         }
     }
@@ -522,6 +486,7 @@ void load_demo()
         }
     }
     
+    select_button(1);
 #endif
 }
 
@@ -577,6 +542,24 @@ void draw()
     glUniform1i(shader_uniform_gfx_post_iChannel0, 0);
     glUniform1f(shader_uniform_gfx_post_iTime, t);
     
+    glUniform1f(shader_uniform_gfx_post_iFader0, fader0);
+    glUniform1f(shader_uniform_gfx_post_iFader1, fader1);
+    glUniform1f(shader_uniform_gfx_post_iFader2, fader2);
+    glUniform1f(shader_uniform_gfx_post_iFader3, fader3);
+    glUniform1f(shader_uniform_gfx_post_iFader4, fader4);
+    glUniform1f(shader_uniform_gfx_post_iFader5, fader5);
+    glUniform1f(shader_uniform_gfx_post_iFader6, fader6);
+    glUniform1f(shader_uniform_gfx_post_iFader7, fader7);
+                                   
+    glUniform1f(shader_uniform_gfx_post_iDial0, dial0);
+    glUniform1f(shader_uniform_gfx_post_iDial1, dial1);
+    glUniform1f(shader_uniform_gfx_post_iDial2, dial2);
+    glUniform1f(shader_uniform_gfx_post_iDial3, dial3);
+    glUniform1f(shader_uniform_gfx_post_iDial4, dial4);
+    glUniform1f(shader_uniform_gfx_post_iDial5, dial5);
+    glUniform1f(shader_uniform_gfx_post_iDial6, dial6);
+    glUniform1f(shader_uniform_gfx_post_iDial7, dial7);
+    
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, first_pass_texture);
 //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -603,6 +586,15 @@ void draw()
     glUniform1f(shader_uniform_gfx_text_iFader5, fader5);
     glUniform1f(shader_uniform_gfx_text_iFader6, fader6);
     glUniform1f(shader_uniform_gfx_text_iFader7, fader7);
+    
+    glUniform1f(shader_uniform_gfx_text_iDial0, dial0);
+    glUniform1f(shader_uniform_gfx_text_iDial1, dial1);
+    glUniform1f(shader_uniform_gfx_text_iDial2, dial2);
+    glUniform1f(shader_uniform_gfx_text_iDial3, dial3);
+    glUniform1f(shader_uniform_gfx_text_iDial4, dial4);
+    glUniform1f(shader_uniform_gfx_text_iDial5, dial5);
+    glUniform1f(shader_uniform_gfx_text_iDial6, dial6);
+    glUniform1f(shader_uniform_gfx_text_iDial7, dial7);
 #endif
     
     glActiveTexture(GL_TEXTURE0);

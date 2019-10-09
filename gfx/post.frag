@@ -19,10 +19,8 @@
 
 void scale(out float s);
 
-// uniform float iFSAA;
 uniform float iTime;
 uniform vec2 iResolution;
-// uniform sampler2D iChannel0;
 
 uniform float iFader0;
 uniform float iFader1;
@@ -41,6 +39,9 @@ uniform float iDial4;
 uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
+
+uniform sampler2D iChannel0;
+uniform float iFSAA;
 
 out vec4 gl_FragColor;
 
@@ -577,8 +578,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
     
     
     // Scan lines
-    col += vec3(0., 0.05, 0.1)*sin(uv.y*1050.+ 5.*iTime);
-    fragColor = clamp(col,0.,1.);
+    col += vec4(0., 0.05, 0.1,0.)*sin(uv.y*1050.+ 5.*iTime);
+    fragColor = col;
+//     fragColor = vec4(clamp(col,0.,1.),1.);
 }
 
 void main()

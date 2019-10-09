@@ -231,7 +231,15 @@ double t
     fader4 = 0,
     fader5 = 0,
     fader6 = 0,
-    fader7 = 0
+    fader7 = 0,
+    dial0 = 0,
+    dial1 = 0,
+    dial2 = 0,
+    dial3 = 0,
+    dial4 = 0,
+    dial5 = 0,
+    dial6 = 0,
+    dial7 = 0
 #endif
     ;
 
