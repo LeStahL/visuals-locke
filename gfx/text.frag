@@ -17,9 +17,10 @@
  
 #version 130
 
-uniform float iFontWidth, iTime;
+uniform float iTime;
 uniform vec2 iResolution;
-uniform sampler2D iChannel0, iFont;
+uniform float iFontWidth, iTextWidth;
+uniform sampler2D iChannel0, iFont, iText;
 uniform float iFSAA;
 
 uniform float iFader0;
@@ -39,6 +40,8 @@ uniform float iDial4;
 uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
+
+uniform float iShowWindow;
 
 float iScale;
 
@@ -76,6 +79,38 @@ float sm(float d)
 }
 
 void dvoronoi(in vec2 x, out float d, out vec2 p, out float control_distance);
+
+void rchar(in float off, out float val)
+{
+    off = round(off);
+    // Find the pixel offset your data is in (4 chars per pixel).
+    float coff = floor(.25 * off);
+    // - Determine texture coordinates.
+    //     offset = i*iFontWidth+j for (i,j) in [0,iFontWidth]^2
+    //     floor(offset/iFontWidth) = floor((i*iFontwidth+j)/iFontwidth)
+    //                              = floor(i)+floor(j/iFontWidth) = i
+    //     mod(offset, iFontWidth) = mod(i*iFontWidth + j, iFontWidth) = j
+    // - For texture coordinates (i,j) has to be rescaled to [0,1].
+    // - Also we need to add an extra small offset to the texture coordinate
+    //   in order to always "hit" the right pixel. Pixel width is
+    //     1./iFontWidth.
+    //   Half of it is in the center of the pixel.
+    vec2 ind = (vec2(mod(coff, iTextWidth), floor(coff/iTextWidth))+.05)/iTextWidth;
+    // Get 1 bytes of data from the texture
+    vec4 block = texture(iText, ind);
+    
+    // Select appropriate bytes
+    off = mod(off, 4.);
+    float data;
+    if(off < .5) data = block.r;
+    else if(off < 1.5) data = block.g;
+    else if(off < 2.5) data = block.b;
+    else data = block.a;
+    // Convert bytes to unsigned short. The lower bytes operate on 255,
+    // the higher bytes operate on 65280, which is the maximum range 
+    // of 65535 minus the lower 255.
+    val = (data*255.);
+}
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
@@ -133,114 +168,137 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         new.gba = mix(new.gba, c.xxx, sm(d));
     }
     
-    if(iTime < 20.)
+    // Add window
+    if(iShowWindow == 1.)
     {
-        float sc = clamp(iTime-10.,0.,1.)*(1.-clamp(iTime-18.,0.,1.)),
+        addwindow(uv, new.gba, vec2(.76, .35));
+        
+        float d = 1., 
+            size = .05,
             da;
+        vec2 y = mod(uv, size)-.5*size, 
+            yi = ((uv-y+.5*size)/size + vec2(13.,5.));
+//         yi = vec2(mod(yi.x, 26.), floor(yi.y/26.));
         
-        // window
-        vec3 c1 = new.gba;
-        addwindow(uv, c1, vec2(.72,.15));
-        new.gba = mix(new.gba, c1, sc);
+        yi.y = 9.-yi.y;
+        rchar(1.+yi.x+26.*yi.y, da);
+        if(yi.x < 26. && yi.x >= -1.) dglyph(y, da, .45*.7*size, d);
         
-        // No more partycoding this time!
-        dstring(uv-vec2(-.55,.05), 5., .02, d);
-        
-        // yeah sure.
-        dstring(uv-vec2(-.55,0.), 6., .02, da);
-        d = min(d, da);
-        
-        // well, that worked!
-        dstring(uv-vec2(-.55,-.05), 7., .02, da);
-        d = min(d, da);
-        
-        d = mix(1., d, sc);
-        
-        new.gba = mix(new.gba, c.yyy, sm(d-.005));
+//         stroke(d-.01, .005, da);
+        new.gba = mix(new.gba, c.yyy, sm((d-.01)));
         new.gba = mix(new.gba, c.xxx, sm(d));
     }
-    else if(iTime < 32.) 
-    {
-        float sc = smoothstep(0.,1.,clamp(iTime-25.,0.,1.))*(1.-smoothstep(0.,1.,clamp(iTime-30.,0.,1.)));
-        
-        vec3 c1 = new.gba;
-        addwindow(uv-vec2(0.,-.3), c1, vec2(.15,.1));
-        
-        dstring((uv-vec2(-.085,-.3)), 3., .02, d); // Team210
-        float da;
-        dstring((uv-vec2(-.08,-.35)), 26., .02, da); // present
-        d = min(d,da);
-
-//         c1 = mix(c1, c.yyy, sm(d-.01));
-        c1 = mix(c1,c.xxx, sm(d));
-        
-        
-        new.gba = mix(new.gba, c1, sc);
-    }
-    else if(iTime < 60.) // star sky, once you offend
-    {
-        float da;
-        vec3 c_1 = vec3(1.00,0.33,0.38),
-            c_2 = vec3(0.94,0.91,0.60);
-            
-        float sc = smoothstep(54.,55.,iTime)*(1.-smoothstep(60., 61., iTime));
-        
-        dstring(uv-vec2(-.55,.025), 18., .03, d);
-        dstring(uv-vec2(-.55,-.025), 19., .03, da);
-        d = min(d, da);
-        
-        d = mix(1., d, sc);
-        
-        // window
-        vec3 c1 = new.gba;
-        addwindow(uv, c1, vec2(.72,.15));
-        new.gba = mix(new.gba, c1, sc);
-        
-        new.gba = mix(new.gba, c_1, sm(abs(d-.002)-.001));
-        new.gba = mix(new.gba, c_2, sm(d));
-    }
     
-    else if(iTime < 121.) // greetings
-    {
-        
-    }
-    else if(iTime < 135.) // spacepigs diss
-    {
-        float da;
-        vec3 c_1 = vec3(1.00,0.33,0.38),
-            c_2 = vec3(0.94,0.91,0.60);
-            
-        float sc = smoothstep(125.,126.,iTime)*(1.-smoothstep(133., 134., iTime));
-        
-        dstring(uv-vec2(-.55,.075), 20., .027, d);
-        dstring(uv-vec2(-.55,.025), 21., .027, da);
-        d = min(d, da);
-        dstring(uv-vec2(-.55,-.025), 22., .027, da);
-        d = min(d, da);
-        dstring(uv-vec2(-.55,-.075), 23., .027, da);//eurer
-        d = min(d, da);
-        
-        d = mix(1., d, sc);
-        
-        // window
-        vec3 c1 = new.gba;
-        addwindow(uv, c1, vec2(.72,.15));
-        new.gba = mix(new.gba, c1, sc);
-        
-        new.gba = mix(new.gba, c_1, sm(abs(d-.002)-.001));
-        new.gba = mix(new.gba, c_2, sm(d));
-    }
-    else
-    {
-//         col = mix(col, c.yyy, clamp((iTime-212)/5., 0., 1.));
-        float da;
-        dstring(uv-vec2(-.55,0.), 27., .025, da);
-        da = mix(1., da, smoothstep(212.,217.,iTime));
-        new.gba = mix(new.gba, c.yyy, smoothstep(212.,217.,iTime));
-        new.gba = mix(new.gba, vec3(.9,.2,.03), sm(da));
-        stroke(da-.005, .001, da);
-        new.gba = mix(new.gba, c.xxx, sm(da));
-    }
+//     new = texture(iText, uv);
+    
+//     if(iTime < 20.)
+//     {
+//         float sc = clamp(iTime-10.,0.,1.)*(1.-clamp(iTime-18.,0.,1.)),
+//             da;
+//         
+//         // window
+//         vec3 c1 = new.gba;
+//         addwindow(uv, c1, vec2(.72,.15));
+//         new.gba = mix(new.gba, c1, sc);
+//         
+//         // No more partycoding this time!
+//         dstring(uv-vec2(-.55,.05), 5., .02, d);
+//         
+//         // yeah sure.
+//         dstring(uv-vec2(-.55,0.), 6., .02, da);
+//         d = min(d, da);
+//         
+//         // well, that worked!
+//         dstring(uv-vec2(-.55,-.05), 7., .02, da);
+//         d = min(d, da);
+//         
+//         d = mix(1., d, sc);
+//         
+//         new.gba = mix(new.gba, c.yyy, sm(d-.005));
+//         new.gba = mix(new.gba, c.xxx, sm(d));
+//     }
+//     else if(iTime < 32.) 
+//     {
+//         float sc = smoothstep(0.,1.,clamp(iTime-25.,0.,1.))*(1.-smoothstep(0.,1.,clamp(iTime-30.,0.,1.)));
+//         
+//         vec3 c1 = new.gba;
+//         addwindow(uv-vec2(0.,-.3), c1, vec2(.15,.1));
+//         
+//         dstring((uv-vec2(-.085,-.3)), 3., .02, d); // Team210
+//         float da;
+//         dstring((uv-vec2(-.08,-.35)), 26., .02, da); // present
+//         d = min(d,da);
+// 
+// //         c1 = mix(c1, c.yyy, sm(d-.01));
+//         c1 = mix(c1,c.xxx, sm(d));
+//         
+//         
+//         new.gba = mix(new.gba, c1, sc);
+//     }
+//     else if(iTime < 60.) // star sky, once you offend
+//     {
+//         float da;
+//         vec3 c_1 = vec3(1.00,0.33,0.38),
+//             c_2 = vec3(0.94,0.91,0.60);
+//             
+//         float sc = smoothstep(54.,55.,iTime)*(1.-smoothstep(60., 61., iTime));
+//         
+//         dstring(uv-vec2(-.55,.025), 18., .03, d);
+//         dstring(uv-vec2(-.55,-.025), 19., .03, da);
+//         d = min(d, da);
+//         
+//         d = mix(1., d, sc);
+//         
+//         // window
+//         vec3 c1 = new.gba;
+//         addwindow(uv, c1, vec2(.72,.15));
+//         new.gba = mix(new.gba, c1, sc);
+//         
+//         new.gba = mix(new.gba, c_1, sm(abs(d-.002)-.001));
+//         new.gba = mix(new.gba, c_2, sm(d));
+//     }
+//     
+//     else if(iTime < 121.) // greetings
+//     {
+//         
+//     }
+//     else if(iTime < 135.) // spacepigs diss
+//     {
+//         float da;
+//         vec3 c_1 = vec3(1.00,0.33,0.38),
+//             c_2 = vec3(0.94,0.91,0.60);
+//             
+//         float sc = smoothstep(125.,126.,iTime)*(1.-smoothstep(133., 134., iTime));
+//         
+//         dstring(uv-vec2(-.55,.075), 20., .027, d);
+//         dstring(uv-vec2(-.55,.025), 21., .027, da);
+//         d = min(d, da);
+//         dstring(uv-vec2(-.55,-.025), 22., .027, da);
+//         d = min(d, da);
+//         dstring(uv-vec2(-.55,-.075), 23., .027, da);//eurer
+//         d = min(d, da);
+//         
+//         d = mix(1., d, sc);
+//         
+//         // window
+//         vec3 c1 = new.gba;
+//         addwindow(uv, c1, vec2(.72,.15));
+//         new.gba = mix(new.gba, c1, sc);
+//         
+//         new.gba = mix(new.gba, c_1, sm(abs(d-.002)-.001));
+//         new.gba = mix(new.gba, c_2, sm(d));
+//     }
+//     else
+//     {
+// //         col = mix(col, c.yyy, clamp((iTime-212)/5., 0., 1.));
+//         float da;
+//         dstring(uv-vec2(-.55,0.), 27., .025, da);
+//         da = mix(1., da, smoothstep(212.,217.,iTime));
+//         new.gba = mix(new.gba, c.yyy, smoothstep(212.,217.,iTime));
+//         new.gba = mix(new.gba, vec3(.9,.2,.03), sm(da));
+//         stroke(da-.005, .001, da);
+//         new.gba = mix(new.gba, c.xxx, sm(da));
+//     }
     
     
     // 

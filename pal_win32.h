@@ -58,6 +58,15 @@ int flip_buffers()
 	return TRUE;
 }
 
+void transfer_text()
+{
+    input_texture[0] = ninputs;
+    for(int i=0; i<ninputs; ++i) input_texture[1+i] = input[i];
+    glBindTexture(GL_TEXTURE_2D, input_texture_handle);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, input_texture_size, input_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, input_texture);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch(uMsg)
@@ -82,6 +91,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					else
 						waveOutRestart(hWaveOut);
 					break;
+                case VK_BACK:
+                    input[ninputs] = '\0';
+                    ninputs = max(ninputs-1,0);
+                    printf("%s\n", input);
+                    transfer_text();
+                    break;
 			}
 			break;
 		case WM_RBUTTONDOWN:
@@ -90,10 +105,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 #endif
 			ExitProcess(0);
 			break;
-//         case WM_MOUSEMOVE:
-//             mx = GET_X_LPARAM(lParam);
-//             my = GET_Y_LPARAM(lParam);
-//             break;
+        case WM_CHAR:
+            input[ninputs] = tolower(wParam);
+            input[ninputs+1] = '\0';
+            ninputs = min(ninputs + 1, input_texture_nentries-2);
+            printf("%s\n", input);
+            transfer_text();
+            break;
 
 		default:
 			break;

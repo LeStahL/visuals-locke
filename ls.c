@@ -110,8 +110,15 @@ void CALLBACK MidiInProc_apc40mk2(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, 
         BYTE channel = b4lo,
             button = b3;
             
+        if(button == 0x67) 
+        {
+            show_window = 1.-show_window;
+            printf("Showing window.\n");
+        }
+            
         if(b4hi == NOTE_ON)
         {   
+            
         }
         else if(b4hi == NOTE_OFF)
         {
@@ -411,6 +418,10 @@ void load_demo()
     load_font();
 
     updateBar();
+    
+    load_keyboard_input();
+    
+    updateBar();
 
 //     load_compressed_sound();
 //     music_loading = 1;
@@ -505,6 +516,18 @@ void load_font()
     progress += .1/NSHADERS;
 }
 
+void load_keyboard_input()
+{
+    // Initialize keyboard texture
+    glGenTextures(1, &input_texture_handle);
+    glBindTexture(GL_TEXTURE_2D, input_texture_handle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, input_texture_size, input_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, input);
+}
+
 // Pure opengl drawing code, essentially cross-platform
 void draw()
 {
@@ -575,7 +598,9 @@ void draw()
     glUniform1f(shader_uniform_gfx_text_iTime, t);
     glUniform1i(shader_uniform_gfx_text_iChannel0, 0);
     glUniform1i(shader_uniform_gfx_text_iFont, 1);
+    glUniform1i(shader_uniform_gfx_text_iText, 2);
     glUniform1f(shader_uniform_gfx_text_iFSAA, fsaa);
+    glUniform1f(shader_uniform_gfx_text_iTextWidth, input_texture_size);
     
 #ifdef MIDI
     glUniform1f(shader_uniform_gfx_text_iFader0, fader0);
@@ -595,6 +620,8 @@ void draw()
     glUniform1f(shader_uniform_gfx_text_iDial5, dial5);
     glUniform1f(shader_uniform_gfx_text_iDial6, dial6);
     glUniform1f(shader_uniform_gfx_text_iDial7, dial7);
+    
+    glUniform1f(shader_uniform_gfx_text_iShowWindow, show_window);
 #endif
     
     glActiveTexture(GL_TEXTURE0);
@@ -603,7 +630,10 @@ void draw()
     
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, font_texture_handle);
-//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, font_texture_size, font_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, input_texture_handle);
+//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, input_texture_size, input_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, input_texture);
     
     quad();
     glBindTexture(GL_TEXTURE_2D, 0);

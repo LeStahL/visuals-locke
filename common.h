@@ -213,7 +213,8 @@ int
     txaa = 1,
 
 	// Text
-	font_texture_handle;
+	font_texture_handle,
+    input_texture_handle;
     
 double mx, my;
 
@@ -239,9 +240,9 @@ double t
     dial4 = 0,
     dial5 = 0,
     dial6 = 0,
-    dial7 = 0
+    dial7 = 0,
 #endif
-    ;
+    show_window = 0.;
 
 unsigned int loading = 1, music_loading = 0;
 int music_block = 0;
@@ -272,8 +273,15 @@ GLenum error;
 float t_load_end = 0.;
 int override_index = 0;
 
+const int input_texture_size = 32;
+#define input_texture_nentries 1024
+char input_texture[input_texture_nentries]; 
+char input[input_texture_nentries];
+int ninputs = 0;
+
 void load_demo();
 void load_font();
+void load_keyboard_input();
 void quad();
 void updateBar();
 void draw();
