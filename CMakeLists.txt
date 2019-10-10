@@ -60,6 +60,8 @@ set(SHADER_FILES
         gfx/phixiheart.frag
         gfx/canal.frag
         gfx/chart.frag
+        gfx/cubes.frag
+        gfx/graffiti2.frag
 )
 set(SHADER_SYMBOLS_PATH gfx/symbols/)
 set(STRINGS_FILE font/strings.txt)

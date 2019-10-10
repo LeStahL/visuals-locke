@@ -60,7 +60,7 @@ void scene(in vec3 x, out vec2 d)
 {
     d = c.xx;
     
-    x.z -= mix(1.,5.,iDial0)*iTime;
+    x.z -= mix(1.,5.,iFader7)*iTime;
     
     float phi = atan(x.y, x.x),
         dhex,
@@ -87,11 +87,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
     vec3 col = c.yyy;
     
-    if(length(uv) > .5)
-    {
-        fragColor = vec4(col, 0.);
-        return;
-    }
+//     if(length(uv) > .5)
+//     {
+//         fragColor = vec4(col, 0.);
+//         return;
+//     }
     
     // Camera setup
     float pp = .3*iTime;
