@@ -57,6 +57,9 @@ set(SHADER_FILES
         gfx/hexagontunnel.frag
         gfx/bloodcells.frag
         gfx/eyeballexplosion.frag
+        gfx/phixiheart.frag
+        gfx/canal.frag
+        gfx/chart.frag
 )
 set(SHADER_SYMBOLS_PATH gfx/symbols/)
 set(STRINGS_FILE font/strings.txt)
