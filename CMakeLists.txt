@@ -33,6 +33,8 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 find_package(Qt5 COMPONENTS Widgets)
 
+add_subdirectory("${PROJECT_SOURCE_DIR}/thirdparty/fftw-3.3.8/")
+
 set(COMMON_HEADERS config_types.h config.h glext.h engine/platform.h engine/renderer.h engine/shader.h engine/loader.h engine/orchestrator.h)
 set(SFX_SHADER sfx.frag)
 set(SHADER_FILES
@@ -101,7 +103,7 @@ add_dependencies(visuals-locke texture_packing)
 
 target_include_directories(visuals-locke SYSTEM PRIVATE "${OPENGL_INCLUDE_DIR}")
 
-target_link_libraries(visuals-locke OpenGL::GL)
+target_link_libraries(visuals-locke OpenGL::GL fftw3)
 
 if(MSVC)
     set_target_properties(visuals-locke PROPERTIES LINK_FLAGS "/ENTRY:demo /SUBSYSTEM:Windows /OPT:REF /OPT:ICF=10 /VERBOSE /NODEFAULTLIB")
@@ -124,6 +126,9 @@ else()
     target_include_directories(visuals-locke SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
     target_link_libraries(visuals-locke ${SDL2_LIBRARIES})
 endif()
+
+target_include_directories(visuals-locke SYSTEM PRIVATE "${PROJECT_SOURCE_DIR}/thirdparty/fftw-3.3.8/api")
+target_link_directories(visuals-locke PRIVATE "${PROJECT_BINARY_DIR}/thirdparty/fftw-3.3.8/Release")
 
 
 #################################

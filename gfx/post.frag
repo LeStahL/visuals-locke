@@ -69,6 +69,21 @@ float sm(float d)
 
 float dot2( in vec3 v ) { return dot(v,v); }
 
+void palette(in float scale, out vec3 col)
+{
+    const int N = 5;
+    vec3 colors[N] = vec3[N](
+             vec3(0.72,0.88,0.95),
+             vec3(0.09,0.60,0.66),
+             vec3(0.67,0.83,0.34),
+             vec3(0.98,0.79,0.03),
+             vec3(0.95,0.35,0.27)
+    );
+	float index = floor(scale*float(N)), 
+        remainder = scale*float(N)-index;
+    col = mix(colors[int(index)],colors[int(index)+1], remainder);
+}
+
 // Adapted from https://www.shadertoy.com/view/4sXXRN
 void dtriangle3(in vec3 p,  in vec3 v1, in vec3 v2, in vec3 v3, out float dst)
 {
@@ -323,13 +338,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
     // Color
     if(iFader5 > 0.)
     {
-        mat3 RR;
-        vec3 ra;
-        rand(iFader5*c.xx+3337., ra.x);
-        rand(iFader5*c.xx+1337., ra.y);
-        rand(iFader5*c.xx+2337., ra.z);
-        rot3((iFader5-48.)*810.*ra+col.rgb,RR);
-        col.rgb = mix(col.rgb, abs(RR*col.rgb),col.rgb);
+//         mat3 RR;
+//         vec3 ra;
+//         rand(iFader5*c.xx+3337., ra.x);
+//         rand(iFader5*c.xx+1337., ra.y);
+//         rand(iFader5*c.xx+2337., ra.z);
+//         rot3((iFader5-48.)*810.*ra+col.rgb,RR);
+//         col.rgb = mix(col.rgb, abs(RR*col.rgb),col.rgb);
+        vec3 c1;
+        palette(iFader5, c1);
+        col.rgb = mix(col.rgb, c1, length(col.rgb)/sqrt(3.)); 
+        
     }
     
     // Grayscale

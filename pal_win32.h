@@ -60,10 +60,8 @@ int flip_buffers()
 
 void transfer_text()
 {
-    input_texture[0] = ninputs;
-    for(int i=0; i<ninputs; ++i) input_texture[1+i] = input[i];
     glBindTexture(GL_TEXTURE_2D, input_texture_handle);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, input_texture_size, input_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, input_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, input_texture_size, input_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, input);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -84,18 +82,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					ExitProcess(0);
 					break;
 				case VK_SPACE:
-					// pause/unpaused render timer
-					paused = !paused;
-					if(paused)
-						waveOutPause(hWaveOut);
-					else
-						waveOutRestart(hWaveOut);
 					break;
                 case VK_BACK:
+                    input[ninputs-1] = '\0';
                     input[ninputs] = '\0';
-                    ninputs = max(ninputs-1,0);
-                    printf("%s\n", input);
+//                     input[ninputs-2] = '\0';
+                    ninputs = max(ninputs-2,0);
+                    printf("%d >> %s\n", ninputs, input);
                     transfer_text();
+                    break;
+                case VK_RETURN:
+                    show_window = 1.-show_window;
                     break;
 			}
 			break;
@@ -106,7 +103,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			ExitProcess(0);
 			break;
         case WM_CHAR:
-            input[ninputs] = tolower(wParam);
+            char c = tolower(wParam);
+            if(c == 'ö') c = 'o';
+            if(c == 'ä') c = 'a';
+            if(c == 'ü') c = 'u';
+            if(c == 'ß') c = '3';
+            input[ninputs] = c;
             input[ninputs+1] = '\0';
             ninputs = min(ninputs + 1, input_texture_nentries-2);
             printf("%s\n", input);
@@ -467,6 +469,50 @@ int WINAPI demo(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, in
     QueryPerformanceFrequency((LARGE_INTEGER*)&cps);
     offset = (double)current_time/(double)cps;
 
+    //FFTW3 Setup
+    in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NFFT);
+    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * NFFT);
+    p = fftw_plan_dft_1d(NFFT, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+	
+    // Init sound capture
+    WAVEFORMATEX wfx;
+    wfx.wFormatTag = WAVE_FORMAT_PCM;
+    wfx.nChannels = 1;                    
+    wfx.nSamplesPerSec = 44100.;
+    wfx.wBitsPerSample = 16;
+    wfx.nBlockAlign = wfx.wBitsPerSample * wfx.nChannels / 8;
+    wfx.nAvgBytesPerSec = wfx.nBlockAlign * wfx.nSamplesPerSec;
+    
+    // Prepare mic
+    int result = waveInOpen(&wi,            
+                WAVE_MAPPER,    
+                &wfx,           
+                NULL,NULL,      
+                CALLBACK_NULL | WAVE_FORMAT_DIRECT  
+              );
+    printf("WaveInOpen: %d\n", result);
+    
+    int bsize = buffer_size*wfx.wBitsPerSample*wfx.nChannels/8;
+    char * buffers;
+    if(double_buffered == 1)
+        buffers = (char*)malloc(2*bsize);
+    else
+        buffers = (char*)malloc(bsize);
+    
+    for(int i = 0; i < double_buffered+1; ++i)
+    {
+        printf("Buffer i:\n");
+        headers[i].lpData =         buffers+i*bsize;             
+        headers[i].dwBufferLength = bsize;
+        result = waveInPrepareHeader(wi, &headers[i], sizeof(headers[i]));
+        printf("WaveInPrepareHeader: %d\n", result);
+        result = waveInAddBuffer(wi, &headers[i], sizeof(headers[i]));
+        printf("WaveInAddBuffer: %d\n", result);
+    }
+    
+    result = waveInStart(wi);
+    printf("WaveInStart: %d\n", result);
+    
     // Main loop
     while(flip_buffers())
 	{

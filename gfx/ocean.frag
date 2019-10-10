@@ -2,6 +2,7 @@
 
 uniform float iTime;
 uniform vec2 iResolution;
+uniform float iScale;
 
 uniform float iFader0;
 uniform float iFader1;
@@ -21,9 +22,9 @@ uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
 
-float iScale;
+// float iScale;
 
-void scale(out float s);
+// void scale(out float s);
 
 const float pi = acos(-1.);
 const vec3 c = vec3(1.,0.,-1.);
@@ -87,17 +88,12 @@ void normal(in vec3 x, out vec3 n, in float dx);
 void palette(in float scale, out vec3 col)
 {
     const int N = 5;
-    const vec3 colors[N] = vec3[N](
-//             vec3(0.27,0.13,0.26),
-//             vec3(0.43,0.21,0.33),
-//             vec3(0.69,0.36,0.42),
-//             vec3(0.87,0.52,0.45),
-//             vec3(0.99,0.68,0.53)
-vec3(0.04,0.04,0.15),
-vec3(0.18,0.32,0.46),
-vec3(0.66,0.43,0.62),
-vec3(0.96,0.78,0.88),
-vec3(0.40,0.00,0.18)
+    vec3 colors[N] = vec3[N](
+             mix(vec3(0.27,0.13,0.26),vec3(0.04,0.04,0.15),iScale),
+             mix(vec3(0.43,0.21,0.33),vec3(0.18,0.32,0.46),iScale),
+             mix(vec3(0.69,0.36,0.42),vec3(0.66,0.43,0.62),iScale),
+             mix(vec3(0.87,0.52,0.45),vec3(0.96,0.78,0.88),iScale),
+             mix(vec3(0.99,0.68,0.53),vec3(0.40,0.00,0.18),iScale)
     );
 	float index = floor(scale*float(N)), 
         remainder = scale*float(N)-index;
@@ -150,7 +146,7 @@ void colorize(in vec2 x, inout vec3 col)
 
 void main()
 {
-    scale(iScale);
+//     scale(iScale);
     vec2 uv = (gl_FragCoord.xy-.5*iResolution.xy)/iResolution.y,
         s;
     

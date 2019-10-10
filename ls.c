@@ -30,6 +30,11 @@ int _fltused = 0;
 
 #include "common.h"
 
+double mix(double a, double b, double t)
+{
+    return (1.-t)*a+t*b;
+}
+
 // Standard library and CRT rewrite for saving executable size
 void *memset(void *ptr, int value, size_t num)
 {
@@ -115,6 +120,14 @@ void CALLBACK MidiInProc_apc40mk2(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, 
             show_window = 1.-show_window;
             printf("Showing window.\n");
         }
+        else if(button == 0x41) 
+        {
+            for(int i=0; i<input_texture_nentries; ++i)
+                input[i] = '\0';
+            ninputs = 1;
+            transfer_text();
+            printf("resetting text.\n");
+        }
             
         if(b4hi == NOTE_ON)
         {   
@@ -183,46 +196,6 @@ void CALLBACK MidiInProc_apc40mk2(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, 
         }
         else if(b4hi == CONTROL_CHANGE)// Channel select
         {
-            if(button == TIME_DIAL)
-            {
-//                 waveOutReset(hWaveOut);
-                time_dial = (double)b2/(double)0x7F;
-                
-//                 int delta = (.9*time_dial+.09*time_fine_dial+.01*time_very_fine_dial) * duration * (double)sample_rate;
-//                 header.lpData = min(max(smusic1, smusic1+delta), smusic1+music1_size);
-//                 header.dwBufferLength = 4 * (music1_size-delta);
-//                 waveOutPrepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
-//                 waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
-//                 waveOutPause(hWaveOut);
-                paused = 1;
-            }
-            else if(button == TIME_FINE_DIAL)
-            {
-//                 waveOutReset(hWaveOut);
-                time_fine_dial = (double)b2/(double)0x7F;
-                
-//                 int delta = (.9*time_dial+.09*time_fine_dial+.01*time_very_fine_dial) * duration * (double)sample_rate;
-//                 header.lpData = min(max(smusic1, smusic1+delta), smusic1+music1_size);
-//                 header.dwBufferLength = 4 * (music1_size-delta);
-//                 waveOutPrepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
-//                 waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
-//                 waveOutPause(hWaveOut);
-                paused = 1;
-            }
-            else if(button == TIME_VERYFINE_DIAL)
-            {
-//                 waveOutReset(hWaveOut);
-                time_very_fine_dial = (double)b2/(double)0x7F;
-                
-//                 int delta = (.9*time_dial+.09*time_fine_dial+.01*time_very_fine_dial) * duration * (double)sample_rate;
-//                 header.lpData = min(max(smusic1, smusic1+delta), smusic1+music1_size);
-//                 header.dwBufferLength = 4 * (music1_size-delta);
-//                 waveOutPrepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
-//                 waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
-//                 waveOutPause(hWaveOut);
-                paused = 1;
-            }
-            else
             {
                 if(channel == 0 && button == 0x07) fader0 = (double)b2/(double)0x7F;
                 else if(channel == 1 && button == 0x07) fader1 = (double)b2/(double)0x7F;
@@ -233,14 +206,15 @@ void CALLBACK MidiInProc_apc40mk2(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, 
                 else if(channel == 6 && button == 0x07) fader6 = (double)b2/(double)0x7F;
                 else if(channel == 7 && button == 0x07) fader7 = (double)b2/(double)0x7F;
                 
-                if(channel == 0 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
-                if(channel == 1 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
-                if(channel == 2 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
-                if(channel == 3 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
-                if(channel == 4 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
-                if(channel == 5 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
-                if(channel == 6 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
-                if(channel == 7 && b3hi == 0x01) dial0 = (double)b2/(double)0x7F; 
+                if(b3 == 0x10) dial0 = (double)b2/(double)0x7F; 
+                if(b3 == 0x11) dial1 = (double)b2/(double)0x7F; 
+                if(b3 == 0x12) dial2 = (double)b2/(double)0x7F; 
+                if(b3 == 0x13) dial3 = (double)b2/(double)0x7F; 
+                if(b3 == 0x14) dial4 = (double)b2/(double)0x7F; 
+                if(b3 == 0x15) dial5 = (double)b2/(double)0x7F; 
+                if(b3 == 0x16) dial6 = (double)b2/(double)0x7F; 
+                if(b3 == 0x17) dial7 = (double)b2/(double)0x7F; 
+                printf("%le %le %le\n", dial0, dial1, dial2);
             }
         }
 
@@ -534,28 +508,71 @@ void draw()
     glBindFramebuffer(GL_FRAMEBUFFER, first_pass_framebuffer);
     
     t = t_now;
-//     printf("%le\n", t);
-//     if(t > t_end)
-//     {
-// #ifdef RECORD
-//         if(recording) capFileSaveAs(hCaptureWindow, record_filename); 
-// #endif
-//         ExitProcess(0);
-//     }
+
+    for(int i=0; i<double_buffered+1; ++i)
+    {
+        cutoff = (int)mix(96.,256.,dial2);
+        if(headers[i].dwFlags & WHDR_DONE)
+        {
+            // Replace last block in values
+            for(int j=0; j<NFFT-buffer_size; ++j)
+                values[j] = values[j+buffer_size];
+            for(int j=0; j<buffer_size; ++j)
+                values[NFFT-buffer_size+j] = ((float)(*(short *)(headers[i].lpData+2*j))/32767.);
+
+            // Fourier transform values
+            for(int j=0; j<NFFT; ++j)
+            {
+                in[j][0] = values[j];
+                in[j][1] = 0.;
+            }
+            fftw_execute(p);
+            
+            if(!scale_override)
+            {
+                scale = 0.;
+                highscale = 0.;
+                for(int j=0; j<NFFT; ++j)
+                    power_spectrum[j] = out[j][0]*out[j][0]+out[j][1]*out[j][1];
+
+                ssscale = sscale;
+                sscale = scale;
+                scale = 0.;
+                for(int j=0; j<cutoff; ++j)
+                {
+                    scale += power_spectrum[j];
+                }
+                scale *= 2.e-2;
+
+                for(int j=cutoff; j<NFFT; ++j)
+                {
+                    highscale += power_spectrum[j];
+                }
+                
+                if(dial0>0.)scale *= mix(1.,100.,dial0);
+                if(dial1>0.)scale *= mix(1.,.01,dial1);
+                
+                scale = max(scale,0.);
+                scale = min(scale,1.);
+            }
+            
+            headers[i].dwFlags = 0;
+            headers[i].dwBytesRecorded = 0;
+            
+            waveInPrepareHeader(wi, &headers[i], sizeof(headers[i]));
+            waveInAddBuffer(wi, &headers[i], sizeof(headers[i]));
+            
+        }
+    }
     
-// #ifdef MIDI
-//     if(time_dial != 0 ||  time_fine_dial != 0 || time_very_fine_dial != 0)
-//     {
-//         t = t_now + (.9*time_dial+.09*time_fine_dial+.01*time_very_fine_dial) * duration;
-//     }
-// #endif
+//     printf("scale: %le\n", scale);
     
-// #include "draw.h"
     int l = ARRAYSIZE(shader_programs);
     glUseProgram(shader_programs[override_index % l].handle);
     glUniform1f(shader_programs[override_index % l].uniforms[0].location, t);
     glUniform2f(shader_programs[override_index % l].uniforms[1].location, w, h);
-    
+    glUniform1f(shader_programs[override_index % l].uniforms[2].location, scale);
+//     glUniform1f(shader_programs[override_index % l].uniforms[3].location, fader0);
     quad();
 
     // Render post processing to buffer
@@ -601,6 +618,7 @@ void draw()
     glUniform1i(shader_uniform_gfx_text_iText, 2);
     glUniform1f(shader_uniform_gfx_text_iFSAA, fsaa);
     glUniform1f(shader_uniform_gfx_text_iTextWidth, input_texture_size);
+    glUniform1f(shader_uniform_gfx_text_iScale, scale);
     
 #ifdef MIDI
     glUniform1f(shader_uniform_gfx_text_iFader0, fader0);

@@ -2,6 +2,7 @@
 
 uniform float iTime;
 uniform vec2 iResolution;
+uniform float iScale;
 
 uniform float iFader0;
 uniform float iFader1;
@@ -20,8 +21,6 @@ uniform float iDial4;
 uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
-
-float iScale;
 
 void scale(out float s);
 
@@ -140,8 +139,6 @@ void main()
 {
     vec2 uv = (gl_FragCoord.xy-.5*iResolution.xy)/iResolution.y,
         s;
-    
-    scale(iScale);
     
     vec3 col = c.xxx,
         o = mix((vec3(uv,1.)),c.yyx+.4*c.yzy,clamp(iTime-1.,0.,1.)),

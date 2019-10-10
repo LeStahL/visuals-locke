@@ -19,6 +19,7 @@
 
 uniform float iTime;
 uniform vec2 iResolution;
+uniform float iScale;
 uniform float iFontWidth, iTextWidth;
 uniform sampler2D iChannel0, iFont, iText;
 uniform float iFSAA;
@@ -42,10 +43,6 @@ uniform float iDial6;
 uniform float iDial7;
 
 uniform float iShowWindow;
-
-float iScale;
-
-void scale(out float s);
 
 out vec4 gl_FragColor;
 
@@ -114,7 +111,6 @@ void rchar(in float off, out float val)
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    scale(iScale);
     a = iResolution.x/iResolution.y;
     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
     
@@ -137,7 +133,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     if(uv.y > .38) // Ui overlay with time counter and credits
     {
         addwindow(uv-.45*vec2(-.45*a,1.-2.*.008*c.yx), new.gba, vec2(.4,.04));
-        addwindow((uv-.45*vec2(.97*a,1.-2.*.008*c.yx))*c.zx, new.gba, vec2(.1,.04));
+        addwindow((uv-.45*vec2(.87*a,1.-2.*.008*c.yx))*c.zx, new.gba, vec2(.2,.04));
         float da;
         dstring((uv-.45*vec2(-.55*a,1.+4.*.008)), 9., .004, d);
         dstring((uv-.45*vec2(-.55*a,1.+2.*.008)), 10., .004, da);
@@ -162,7 +158,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         new.gba = mix(new.gba, c.xxx, sm(d));
         
         // Add exact millisecond
-        dint(uv-.45*vec2(.975*a,1.0), floor(1.e3*fract(iTime)), .01, 4., d);
+//         dint(uv-.45*vec2(.975*a,1.0), floor(1.e3*fract(iTime)), .01, 4., d);
+        dfloat(uv-.45*vec2(.775*a,1.0), iScale, .01, d);
 //         new.gba = mix(new.gba, vec3(1.00,0.40,0.39), sm(d));
         stroke(d-.001, .0005, d);
         new.gba = mix(new.gba, c.xxx, sm(d));
@@ -182,7 +179,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         
         yi.y = 9.-yi.y;
         rchar(1.+yi.x+26.*yi.y, da);
-        if(yi.x < 26. && yi.x >= -1.) dglyph(y, da, .45*.7*size, d);
+        if(yi.x < 26. && yi.x >= -1. && yi.y >= 0.) dglyph(y, da, .45*.7*size, d);
         
 //         stroke(d-.01, .005, da);
         new.gba = mix(new.gba, c.yyy, sm((d-.01)));

@@ -2,6 +2,7 @@
 
 uniform float iTime;
 uniform vec2 iResolution;
+uniform float iScale;
 
 uniform float iFader0;
 uniform float iFader1;
@@ -20,9 +21,6 @@ uniform float iDial4;
 uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
-float iScale;
-
-void scale(out float s);
 
 // Global constants
 const float pi = acos(-1.);
@@ -116,17 +114,17 @@ void palette(in float scale, out vec3 col)
     scale = clamp(scale, 1.e-2,.99);
     const int N = 5;
     vec3 colors[N] = vec3[N](
-mix(vec3(0.20,0.27,0.35),vec3(1.00,0.00,0.47), clamp(iTime-10.,0.,1.)),
-mix(vec3(0.29,0.37,0.45),vec3(0.80,0.00,0.47), clamp(iTime-10.,0.,1.)),
-mix(vec3(0.36,0.65,0.64),vec3(0.60,0.00,0.47), clamp(iTime-10.,0.,1.)),
-mix(vec3(0.66,0.85,0.80),vec3(0.40,0.00,0.47), clamp(iTime-10.,0.,1.)),
-mix(vec3(0.95,0.92,0.82),c.yyy,clamp(iTime-10.,0.,1.))
+mix(vec3(0.20,0.27,0.35),vec3(1.00,0.00,0.47), clamp(iScale,0.,1.)),
+mix(vec3(0.29,0.37,0.45),vec3(0.80,0.00,0.47), clamp(iScale,0.,1.)),
+mix(vec3(0.36,0.65,0.64),vec3(0.60,0.00,0.47), clamp(iScale,0.,1.)),
+mix(vec3(0.66,0.85,0.80),vec3(0.40,0.00,0.47), clamp(iScale,0.,1.)),
+mix(vec3(0.95,0.92,0.82),c.yyy,clamp(iScale,0.,1.))
     );
-    colors[0] = mix(colors[0], vec3(0.68,1.00,0.00), clamp(iTime-20.,0.,1.));
-    colors[1] = mix(colors[1], vec3(0.45,0.84,0.00), clamp(iTime-20.,0.,1.));
-    colors[2] = mix(colors[2], vec3(0.01,0.54,0.00), clamp(iTime-20.,0.,1.));
-    colors[3] = mix(colors[3], vec3(0.00,0.82,0.50), clamp(iTime-20.,0.,1.));
-    colors[4] = mix(colors[4], vec3(0.00,1.00,0.51), clamp(iTime-20.,0.,1.));
+//     colors[0] = mix(colors[0], vec3(0.68,1.00,0.00), clamp(iTime-20.,0.,1.));
+//     colors[1] = mix(colors[1], vec3(0.45,0.84,0.00), clamp(iTime-20.,0.,1.));
+//     colors[2] = mix(colors[2], vec3(0.01,0.54,0.00), clamp(iTime-20.,0.,1.));
+//     colors[3] = mix(colors[3], vec3(0.00,0.82,0.50), clamp(iTime-20.,0.,1.));
+//     colors[4] = mix(colors[4], vec3(0.00,1.00,0.51), clamp(iTime-20.,0.,1.));
 	float index = floor(scale*float(N)), 
         remainder = scale*float(N)-index;
     col = mix(colors[int(index)],colors[int(index)+1], remainder);
@@ -139,7 +137,6 @@ float sm(in float d)
 
 void main()
 {
-    scale(iScale);
     rot3(vec3(1.1,1.3,1.5)*iTime, gR);
     vec2 uv = (gl_FragCoord.xy-.5*iResolution.xy)/iResolution.y,
         s;

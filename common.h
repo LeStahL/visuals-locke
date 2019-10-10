@@ -47,9 +47,21 @@
 #include <GL/gl.h>
 #include <glext.h>
 
+#include "fftw3.h"
+
+fftw_complex *in, *out;
+fftw_plan p;
+#define NFFT 512
+float values[NFFT], power_spectrum[NFFT];
+WAVEHDR headers[2];
+HWAVEIN wi;
+int buffer_size = 64,
+double_buffered = 0,
+scale_override = 0,
+cutoff = 96;
+double scale, sscale, ssscale, highscale;
 
 #define clamp(x, minimum, maximum) min(max(x, minimum), maximum)
-
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -275,7 +287,6 @@ int override_index = 0;
 
 const int input_texture_size = 32;
 #define input_texture_nentries 1024
-char input_texture[input_texture_nentries]; 
 char input[input_texture_nentries];
 int ninputs = 0;
 
