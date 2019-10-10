@@ -19,6 +19,7 @@
 
 uniform float iTime;
 uniform vec2 iResolution;
+uniform float iScale;
 
 uniform float iFader0;
 uniform float iFader1;
@@ -38,11 +39,7 @@ uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
 
-void scale(out float s);
-
-float iScale = 1.,
-    iNote = 0.;
-
+const float iNote = 0.;
 // Global constants
 const float pi = acos(-1.);
 const vec3 c = vec3(1.0, 0.0, -1.0);
@@ -154,8 +151,6 @@ void colorize(in vec2 x, out vec3 col)
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    scale(iScale);
-    
      // Set up coordinates
     a = iResolution.x/iResolution.y;
     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);

@@ -94,6 +94,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 case VK_RETURN:
                     show_window = 1.-show_window;
                     break;
+                case VK_CONTROL:
+                    printf("control.\n");
+                    scale_override = 1.;
+                    break;
 			}
 			break;
 		case WM_RBUTTONDOWN:
@@ -114,7 +118,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             printf("%s\n", input);
             transfer_text();
             break;
-
+        case WM_KEYUP:
+            switch(wParam)
+			{
+                case VK_CONTROL:
+                    scale_override = 0.;
+                    break;
+            }
+            break;
+            
 		default:
 			break;
 

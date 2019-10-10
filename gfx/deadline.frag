@@ -65,19 +65,11 @@ void ddecorations(in vec2 x, in float decs, out float d)
 float m;
 void scene(in vec3 x, out vec2 sdf)
 {
-    if(iTime < 8.)
-    {
         ddeadline(x.xy, sdf.x);
-        zextrude(x.z, -sdf.x, mix(.0,.2,clamp(iTime-2.,0.,1.)*(1.-clamp(iTime-7.,0.,1.))), sdf.x);
+        zextrude(x.z, -sdf.x, mix(.0,.2,iScale), sdf.x);
         sdf.x = min(sdf.x, x.z);
         
         sdf.y = 1.;
-    }
-    else
-    {
-        sdf.x = x.z;
-        sdf.y = 1.;
-    }
 }
 
 void normal(in vec3 x, out vec3 n, in float dx);
@@ -120,7 +112,7 @@ void colorize(in vec2 uv, out vec3 col)
     
     col = mix(col, c.yyy, .2);
 
-    if(iTime < 8.)
+//     if(iTime < 8.)
     {
         ddeadline(uv, d);
         ddl = d;
@@ -185,7 +177,7 @@ void main()
     col = 2.*col*col;
     col = mix(c0, col, clamp(iTime,0.,1.));
     
-    col = mix(col, vec3(0.18,0.24,0.31), clamp(iTime-19.,0.,1.));
+//     col = mix(col, vec3(0.18,0.24,0.31), clamp(iTime-19.,0.,1.));
     
 //     col = mix(col, 2.*c.xyy, iScale);
     

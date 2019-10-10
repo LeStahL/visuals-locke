@@ -193,6 +193,12 @@ void CALLBACK MidiInProc_apc40mk2(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, 
                 }
                 btns = 1+(btns+1)%125;
             }
+            else if(button == 0x61)
+            {
+                printf("reset.\n");
+                QueryPerformanceCounter((LARGE_INTEGER*)&current_time);
+                offset = (double)current_time/(double)cps;
+            }
         }
         else if(b4hi == CONTROL_CHANGE)// Channel select
         {
@@ -509,61 +515,66 @@ void draw()
     
     t = t_now;
 
-    for(int i=0; i<double_buffered+1; ++i)
+    if(scale_override != 1)
     {
-        cutoff = (int)mix(96.,256.,dial2);
-        if(headers[i].dwFlags & WHDR_DONE)
+        for(int i=0; i<double_buffered+1; ++i)
         {
-            // Replace last block in values
-            for(int j=0; j<NFFT-buffer_size; ++j)
-                values[j] = values[j+buffer_size];
-            for(int j=0; j<buffer_size; ++j)
-                values[NFFT-buffer_size+j] = ((float)(*(short *)(headers[i].lpData+2*j))/32767.);
+            cutoff = (int)mix(96.,256.,dial2);
+            if(headers[i].dwFlags & WHDR_DONE)
+            {
+                // Replace last block in values
+                for(int j=0; j<NFFT-buffer_size; ++j)
+                    values[j] = values[j+buffer_size];
+                for(int j=0; j<buffer_size; ++j)
+                    values[NFFT-buffer_size+j] = ((float)(*(short *)(headers[i].lpData+2*j))/32767.);
 
-            // Fourier transform values
-            for(int j=0; j<NFFT; ++j)
-            {
-                in[j][0] = values[j];
-                in[j][1] = 0.;
-            }
-            fftw_execute(p);
-            
-            if(!scale_override)
-            {
-                scale = 0.;
-                highscale = 0.;
+                // Fourier transform values
                 for(int j=0; j<NFFT; ++j)
-                    power_spectrum[j] = out[j][0]*out[j][0]+out[j][1]*out[j][1];
-
-                ssscale = sscale;
-                sscale = scale;
-                scale = 0.;
-                for(int j=0; j<cutoff; ++j)
                 {
-                    scale += power_spectrum[j];
+                    in[j][0] = values[j];
+                    in[j][1] = 0.;
                 }
-                scale *= 2.e-2;
-
-                for(int j=cutoff; j<NFFT; ++j)
+                fftw_execute(p);
+                
+                if(!scale_override)
                 {
-                    highscale += power_spectrum[j];
+                    scale = 0.;
+                    highscale = 0.;
+                    for(int j=0; j<NFFT; ++j)
+                        power_spectrum[j] = out[j][0]*out[j][0]+out[j][1]*out[j][1];
+
+                    ssscale = sscale;
+                    sscale = scale;
+                    scale = 0.;
+                    for(int j=0; j<cutoff; ++j)
+                    {
+                        scale += power_spectrum[j];
+                    }
+                    scale *= 2.e-2;
+
+                    for(int j=cutoff; j<NFFT; ++j)
+                    {
+                        highscale += power_spectrum[j];
+                    }
+                    
+                    if(dial0>0.)scale *= mix(1.,100.,dial0);
+                    if(dial1>0.)scale *= mix(1.,.01,dial1);
+                    
+                    scale = max(scale,0.);
+                    scale = min(scale,1.);
                 }
                 
-                if(dial0>0.)scale *= mix(1.,100.,dial0);
-                if(dial1>0.)scale *= mix(1.,.01,dial1);
+                headers[i].dwFlags = 0;
+                headers[i].dwBytesRecorded = 0;
                 
-                scale = max(scale,0.);
-                scale = min(scale,1.);
+                waveInPrepareHeader(wi, &headers[i], sizeof(headers[i]));
+                waveInAddBuffer(wi, &headers[i], sizeof(headers[i]));
+                
             }
-            
-            headers[i].dwFlags = 0;
-            headers[i].dwBytesRecorded = 0;
-            
-            waveInPrepareHeader(wi, &headers[i], sizeof(headers[i]));
-            waveInAddBuffer(wi, &headers[i], sizeof(headers[i]));
-            
         }
     }
+    else scale = 1.;
+    
     
 //     printf("scale: %le\n", scale);
     

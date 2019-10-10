@@ -53,6 +53,8 @@ set(SHADER_FILES
         gfx/fractal.frag
         gfx/voronoinet.frag
         gfx/volclouds.frag
+        gfx/startunnel.frag
+        gfx/hexagontunnel.frag
 )
 set(SHADER_SYMBOLS_PATH gfx/symbols/)
 set(STRINGS_FILE font/strings.txt)
