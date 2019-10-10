@@ -196,7 +196,7 @@ void colorize(in vec2 uv, inout vec3 col)
     rand(ind,r);
     d = (uv.y+.25)/.5-.2*r;
     palette(clamp(d,0.,1.),c1);
-//     c1 = mix(c1, c.yyy, sm(abs(v)-.02));
+    c1 = mix(c1, c.yyy, sm(abs(v)-.02));
     col = (.5+.5*r)*c.xxx;
     
     dhardcyber(uv, d);

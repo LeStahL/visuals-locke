@@ -143,11 +143,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
     vec3 col = c.yyy;
     
-    if(length(uv) > .5)
-    {
-        fragColor = vec4(col, 0.);
-        return;
-    }
+//     if(length(uv) > .5)
+//     {
+//         fragColor = vec4(col, 0.);
+//         return;
+//     }
     
     vec3 x,
         o = c.yyx,

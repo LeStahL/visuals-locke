@@ -123,7 +123,7 @@ void colorize(in vec2 uv, out vec3 col)
         stroke(d,.002, d);
         c1 = mix(c1, 2.5*vec3(0.27,0.36,0.48), sm(d));
         
-        col = mix(col, c1, clamp((iTime-2.),0.,1.)*(1.-clamp(iTime-7.,0.,1.)));
+        col = mix(col, c1, iScale);
     }
 }
 
