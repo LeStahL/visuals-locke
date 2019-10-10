@@ -583,6 +583,15 @@ void draw()
     glUniform1f(shader_programs[override_index % l].uniforms[0].location, t);
     glUniform2f(shader_programs[override_index % l].uniforms[1].location, w, h);
     glUniform1f(shader_programs[override_index % l].uniforms[2].location, scale);
+    
+    glUniform1f(shader_programs[override_index % l].uniforms[3].location, fader0);
+    glUniform1f(shader_programs[override_index % l].uniforms[4].location, fader1);
+    glUniform1f(shader_programs[override_index % l].uniforms[5].location, fader2);
+    glUniform1f(shader_programs[override_index % l].uniforms[6].location, fader3);
+    glUniform1f(shader_programs[override_index % l].uniforms[7].location, fader4);
+    glUniform1f(shader_programs[override_index % l].uniforms[8].location, fader5);
+    glUniform1f(shader_programs[override_index % l].uniforms[9].location, fader6);
+    glUniform1f(shader_programs[override_index % l].uniforms[10].location, fader7);
 //     glUniform1f(shader_programs[override_index % l].uniforms[3].location, fader0);
     quad();
 

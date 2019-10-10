@@ -15,9 +15,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- uniform float iTime;
- uniform vec2 iResolution;
- uniform float iScale;
+ #version 130
+ 
+uniform float iTime;
+uniform vec2 iResolution;
+uniform float iScale;
+
+uniform float iFader0;
+uniform float iFader1;
+uniform float iFader2;
+uniform float iFader3;
+uniform float iFader4;
+uniform float iFader5;
+uniform float iFader6;
+uniform float iFader7;
+
+uniform float iDial0;
+uniform float iDial1;
+uniform float iDial2;
+uniform float iDial3;
+uniform float iDial4;
+uniform float iDial5;
+uniform float iDial6;
+uniform float iDial7;
  
 // Global constants
 const float pi = acos(-1.);

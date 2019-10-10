@@ -1,5 +1,6 @@
 uniform float iTime;
 uniform vec2 iResolution;
+uniform float iScale;
 
 uniform float iFader0;
 uniform float iFader1;
@@ -19,9 +20,6 @@ uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
 
-float iScale;
-
-void scale(out float s);
 
 // Global constants
 const float pi = acos(-1.);
@@ -55,10 +53,10 @@ void scene(in vec3 x, out vec2 sdf)
         rel = 8.,
         db = length(x)-.4,
         dc;
-    dbox3(x,.2,dc);
-    db = mix(db, dc, clamp(iTime-7., 0., 1.));
-    dstar3(x, 6., vec2(.2,.5), dc);
-    db = mix(db, dc, clamp(iTime-15., 0.,1.));
+    dbox3(x,.2,db);
+//     db = mix(db, dc, clamp(iTime-7., 0., 1.));
+//     dstar3(x, 6., vec2(.2,.5), dc);
+//     db = mix(db, dc, clamp(iTime-15., 0.,1.));
 //     db = mix(db, dc, .6+.6*sin(iTime));
     dsmoothvoronoi3(rel*x, vi, yi, vip);
     sdf = vec2(abs(vi/rel)-.0001, 0.);
@@ -90,15 +88,16 @@ void colorize(in vec2 uv, out vec3 col)
 
 void main()
 {
-    scale(iScale);
     vec2 uv = (gl_FragCoord.xy-.5*iResolution.xy)/iResolution.y,
         s;
+        
     
-    rot3(vec3(1.1,1.3,1.5)*iTime, gR);
-    color1 = mix(vec3(0.47,0.21,0.22), vec3(0.17,0.24,0.30), clamp(iTime-7.,0.,1.));
-    color1 = mix(color1, vec3(0.52,0.85,0.31), clamp(iTime-15., 0., 1.));
-    color2 = mix(vec3(0.22,0.21,0.47), .3*vec3(1.00,0.59,0.22), clamp(iTime-7.,0.,1.));
-    color2 = mix(color2, .15*c.xxx, clamp(iTime-15., 0., 1.));
+    
+    rot3(mix(.1,1.,iFader7)*vec3(1.1,1.3,1.5)*iTime, gR);
+    color1 = mix(vec3(0.47,0.21,0.22), vec3(0.17,0.24,0.30), iScale);
+//     color1 = mix(color1, vec3(0.52,0.85,0.31), clamp(iTime-15., 0., 1.));
+    color2 = mix(vec3(0.22,0.21,0.47), .3*vec3(1.00,0.59,0.22),iScale);
+//     color2 = mix(color2, .15*c.xxx, clamp(iTime-15., 0., 1.));
     
     vec3 col = c.xxx,
         o = c.yyx,
@@ -154,7 +153,7 @@ void main()
                 + .6*col*pow(abs(dot(reflect(-l,n),dir)),2.);
         }
         
-        for(float k = .5; k < .9; k += .2)
+        for(float k = .5; k < .6; k += .2)
         {
             o = x;
             d = 1.e-3;
