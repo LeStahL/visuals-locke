@@ -2,6 +2,7 @@
 
 uniform float iTime;
 uniform vec2 iResolution;
+uniform float iScale;
 
 uniform float iFader0;
 uniform float iFader1;
@@ -20,10 +21,6 @@ uniform float iDial4;
 uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
-
-float iScale;
-
-void scale(out float s);
 
 const float pi = acos(-1.);
 const vec3 c = vec3(1.,0.,-1.);
@@ -178,13 +175,12 @@ void colorize(in vec2 uv, out vec3 col)
 void analytical_box(in vec3 o, in vec3 dir, in vec3 size, out float d);
 void main()
 {
-    scale(iScale);
     vec2 uv = (gl_FragCoord.xy-.5*iResolution.xy)/iResolution.y,
         s;
     
     vec3 col = c.xxx,
-        o = c.yyx+1.4*c.yzy+.3*vec3(cos(iTime), sin(iTime), 0.),
-        r = vec3(sin(iTime), cos(iTime), 0.),
+        o = c.yyx+1.4*c.yzy+.3*vec3(cos(mix(.1,1.,iFader7)*iTime), sin(mix(.1,1.,iFader7)*iTime), 0.),
+        r = vec3(sin(mix(.1,1.,iFader7)*iTime), cos(mix(.1,1.,iFader7)*iTime), 0.),
         t = c.yyy, 
         u = cross(normalize(t-o),-r),
         dir,
@@ -247,6 +243,7 @@ void main()
     }
 
     col = 2.*col*col;
+    col = mix(col, col.bgr, iScale);
 //     col = mix(col, c0, clamp(iTime/2.,0.,1.));
 //     col = mix(col, c.yyy, clamp(iTime-9.,0.,1.));
 
