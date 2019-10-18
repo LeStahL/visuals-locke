@@ -62,6 +62,7 @@ set(SHADER_FILES
         gfx/chart.frag
         gfx/cubes.frag
         gfx/graffiti2.frag
+        gfx/beer.frag
 )
 set(SHADER_SYMBOLS_PATH gfx/symbols/)
 set(STRINGS_FILE font/strings.txt)
