@@ -20,8 +20,8 @@
 uniform float iTime;
 uniform vec2 iResolution;
 uniform float iScale;
-uniform float iFontWidth, iTextWidth;
-uniform sampler2D iChannel0, iFont, iText;
+uniform float iFontWidth, iTextWidth, iQrCodeWidth;
+uniform sampler2D iChannel0, iFont, iText, iQrCode;
 uniform float iFSAA;
 
 uniform float iFader0;
@@ -42,7 +42,7 @@ uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
 
-uniform float iShowWindow;
+uniform float iShowWindow, iShowQrCode;
 
 out vec4 gl_FragColor;
 
@@ -186,6 +186,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         new.gba = mix(new.gba, c.xxx, sm(d));
     }
     
+    // QR Code
+    if(iShowQrCode == 1.)
+    {
+        addwindow(uv, new.gba, vec2(.76, .35));
+        vec2 qrindex = floor(iQrCodeWidth*fragCoord/iResolution.yy);
+//         new.gba = mix(new.gba, 
+        float d;
+        dbox(uv, .25*c.xx, d);
+        new.gba = mix(new.gba, texture(iQrCode, .5*c.xx+2.*uv*c.xz).rgb, sm(d));
+    }
+    
 //     new = texture(iText, uv);
     
 //     if(iTime < 20.)
@@ -304,7 +315,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     stroke(dc, .005, dc);
     new.gba = mix(new.gba, c.yyy, sm(dc));
     
-    fragColor = vec4(new.gba, 1.);
+    fragColor = vec4(clamp(new.gba,0.,1.), 1.);
 }
 
 void main()

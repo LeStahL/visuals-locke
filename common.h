@@ -254,7 +254,8 @@ double t
     dial6 = 0,
     dial7 = 0,
 #endif
-    show_window = 0.;
+    show_window = 0.,
+    show_qr_code = 0.;
 
 unsigned int loading = 1, music_loading = 0;
 int music_block = 0;
@@ -290,9 +291,13 @@ const int input_texture_size = 32;
 char input[input_texture_nentries];
 int ninputs = 0;
 
+// const int qrcode_texture_size = 145;
+int qrcode_texture_handle;
+
 void load_demo();
 void load_font();
 void load_keyboard_input();
+void load_qr_encode();
 void quad();
 void updateBar();
 void draw();

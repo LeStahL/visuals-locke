@@ -128,6 +128,11 @@ void CALLBACK MidiInProc_apc40mk2(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, 
             transfer_text();
             printf("resetting text.\n");
         }
+        else if(button == 0x66)
+        {
+            show_qr_code = 1.-show_qr_code;
+            printf("Showing qr code.\n");
+        }
             
         if(b4hi == NOTE_ON)
         {   
@@ -402,6 +407,10 @@ void load_demo()
     load_keyboard_input();
     
     updateBar();
+    
+    load_qr_encode();
+    
+    updateBar();
 
 //     load_compressed_sound();
 //     music_loading = 1;
@@ -506,6 +515,21 @@ void load_keyboard_input()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, input_texture_size, input_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, input);
+}
+
+#include "sketch/team210.h"
+
+void load_qr_encode()
+{
+    // Initialize keyboard texture
+    glGenTextures(1, &qrcode_texture_handle);
+    glBindTexture(GL_TEXTURE_2D, qrcode_texture_handle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, qrcode_texture_size, qrcode_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, header_data);
+//     qrcode_texture_size = width;
 }
 
 // Pure opengl drawing code, essentially cross-platform
@@ -636,9 +660,13 @@ void draw()
     glUniform1i(shader_uniform_gfx_text_iChannel0, 0);
     glUniform1i(shader_uniform_gfx_text_iFont, 1);
     glUniform1i(shader_uniform_gfx_text_iText, 2);
+    glUniform1i(shader_uniform_gfx_text_iQrCode, 3);
+//     printf("%lf\n", (float)qrcode_texture_size);
+    glUniform1f(shader_uniform_gfx_text_iQrCodeWidth, (float)qrcode_texture_size);
     glUniform1f(shader_uniform_gfx_text_iFSAA, fsaa);
     glUniform1f(shader_uniform_gfx_text_iTextWidth, input_texture_size);
     glUniform1f(shader_uniform_gfx_text_iScale, scale);
+    glUniform1f(shader_uniform_gfx_text_iShowQrCode, show_qr_code);
     
 #ifdef MIDI
     glUniform1f(shader_uniform_gfx_text_iFader0, fader0);
@@ -672,6 +700,9 @@ void draw()
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, input_texture_handle);
 //     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, input_texture_size, input_texture_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, input_texture);
+    
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, qrcode_texture_handle);
     
     quad();
     glBindTexture(GL_TEXTURE_2D, 0);
