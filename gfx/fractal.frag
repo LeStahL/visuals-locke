@@ -1,5 +1,3 @@
-#version 130
-
 uniform float iTime;
 uniform vec2 iResolution;
 uniform float iScale;
@@ -22,190 +20,125 @@ uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
 
+
 // Global constants
 const float pi = acos(-1.);
 const vec3 c = vec3(1.0, 0.0, -1.0);
 float a = 1.0;
 
-void rand(in vec2 x, out float n);
-void lfnoise(in vec2 t, out float n);
+vec3 color1, color2;
+
 void hash22(in vec2 p, out vec2 d);
 void dvoronoi(in vec2 x, out float d, out vec2 p, out float control_distance);
-void add(in vec2 sda, in vec2 sdb, out vec2 sdf);
-void sub(in vec2 sda, in vec2 sdb, out vec2 sdf);
-void zextrude(in float z, in float d2d, in float h, out float d);
-void dbox3(in vec3 x, in vec3 b, out float d);
-void rot3(in vec3 p, out mat3 rot);
-void dbox(in vec2 x, in vec2 b, out float d);
-void dstar(in vec2 x, in float N, in vec2 R, out float dst);
-void doctahedron(in vec3 x, in float h, in float w, out float d);
+void hash33(in vec3 p3, out vec3 d);
+void dvoronoi3(in vec3 x, out float d, out vec3 p, out float control_distance);
+void smoothmin(in float a, in float b, in float k, out float dst);
+void dsmoothvoronoi3(in vec3 x, out float d, out vec3 p, out float control_distance);
 
 mat3 gR;
-vec2 ind = c.yy;
+void rot3(in vec3 p, out mat3 rot);
+void add(in vec2 sda, in vec2 sdb, out vec2 sdf);
+void dbox3(in vec3 x, in vec3 b, out float d);
+void dstar(in vec2 x, in float N, in vec2 R, out float dst);
+void smoothmax(in float a, in float b, in float k, out float res);
+void dstar3(in vec3 x, in float N, in vec2 R, out float dst);
+
 void scene(in vec3 x, out vec2 sdf)
 {
-    vec3 y = x;
-    x.xy += vec2(cos(.3*iTime), sin(.3*iTime));
-    
-    sdf.x = x.z;
-    sdf.y = 0.;
-    
-    float db = abs(length(y-.1*c.yyx)-.2), 
+    if(length(x) > .5) sdf = vec2(length(x)-.5,-1.);
+    x = gR * x;
+    vec3 yi;
+    float vi, 
+        vip, 
+        rel = 8.,
+        db = length(x)-.4,
         dc;
-    dbox3(gR * (y-.1*c.yyx), mix(.1,.2,iScale)*c.xxx, db);
-//     db = mix(db, abs(dc)-.001, clamp(iTime-10.,0.,1.));
-//     doctahedron(gR * (y-.1*c.yyx),.4,.4, dc);
-//     db = mix(db, abs(dc)-.001, clamp(iTime-20.,0.,1.));
-    add(sdf, vec2(abs(db),1.), sdf);
-}
-
-void texture_scene(in vec3 x, out vec2 sdf)
-{
-    vec3 y = x;
-    x.xy += vec2(cos(.3*iTime), sin(.3*iTime));
-    
-    sdf.x = x.z;
-    sdf.y = 0.;
-    
-    float res = 8.;
-    vec2 sdb = c.xy;
-    for(float f = 0.; f < 6.; f += 1.)
-    {
-        float v, vp;
-        vec2 vi;
-        dvoronoi(res*x.xy, v, vi, vp);
-        vp /= res;
-        vi /= res;
-        v /= res;
-        add(sdb, vec2(length(x-vec3(vi,0.))-.5*vp, 0.), sdb);
-        res *= 2.;
-        
-        ind += vi/res;
-    }
-    sub(sdf, sdb, sdf);
-    
-    float db = abs(length(y-.1*c.yyx)-.2), 
-        dc;
-    dbox3(gR * (y-.1*c.yyx), mix(.1,.2,iScale)*c.xxx, db);
-//     db = mix(db, abs(dc)-.001, clamp(iTime-10.,0.,1.));
-//     doctahedron(gR * (y-.1*c.yyx),.4,.4, dc);
-//     db = mix(db, abs(dc)-.001, clamp(iTime-20.,0.,1.));
-    add(sdf, vec2(abs(db),1.), sdf);
+    dbox3(x,.2,db);
+//     db = mix(db, dc, clamp(iTime-7., 0., 1.));
+//     dstar3(x, 6., vec2(.2,.5), dc);
+//     db = mix(db, dc, clamp(iTime-15., 0.,1.));
+//     db = mix(db, dc, .6+.6*sin(iTime));
+    dsmoothvoronoi3(rel*x, vi, yi, vip);
+    sdf = vec2(abs(vi/rel)-.0001, 0.);
+    sdf.x = max(sdf.x, db);
+    add(sdf, vec2(abs(db+.0002)-.0001, 1.), sdf);
 }
 
 void normal(in vec3 x, out vec3 n, in float dx);
-
-void texture_normal(in vec3 x, out vec3 n, in float dx)
-{
-    vec2 s, na;
-    
-    texture_scene(x,s);
-    texture_scene(x+dx*c.xyy, na);
-    n.x = na.x;
-    texture_scene(x+dx*c.yxy, na);
-    n.y = na.x;
-    texture_scene(x+dx*c.yyx, na);
-    n.z = na.x;
-    n = normalize(n-s.x);
-}
-
-void palette(in float scale, out vec3 col)
-{
-    scale = clamp(scale, 1.e-2,.99);
-    const int N = 5;
-    vec3 colors[N] = vec3[N](
-mix(vec3(0.20,0.27,0.35),vec3(1.00,0.00,0.47), clamp(iScale,0.,1.)),
-mix(vec3(0.29,0.37,0.45),vec3(0.80,0.00,0.47), clamp(iScale,0.,1.)),
-mix(vec3(0.36,0.65,0.64),vec3(0.60,0.00,0.47), clamp(iScale,0.,1.)),
-mix(vec3(0.66,0.85,0.80),vec3(0.40,0.00,0.47), clamp(iScale,0.,1.)),
-mix(vec3(0.95,0.92,0.82),c.yyy,clamp(iScale,0.,1.))
-    );
-//     colors[0] = mix(colors[0], vec3(0.68,1.00,0.00), clamp(iTime-20.,0.,1.));
-//     colors[1] = mix(colors[1], vec3(0.45,0.84,0.00), clamp(iTime-20.,0.,1.));
-//     colors[2] = mix(colors[2], vec3(0.01,0.54,0.00), clamp(iTime-20.,0.,1.));
-//     colors[3] = mix(colors[3], vec3(0.00,0.82,0.50), clamp(iTime-20.,0.,1.));
-//     colors[4] = mix(colors[4], vec3(0.00,1.00,0.51), clamp(iTime-20.,0.,1.));
-	float index = floor(scale*float(N)), 
-        remainder = scale*float(N)-index;
-    col = mix(colors[int(index)],colors[int(index)+1], remainder);
-}
-
+void dbox(in vec2 x, in vec2 b, out float d);
 float sm(in float d)
 {
     return smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d);
 }
 
+void colorize(in vec2 uv, out vec3 col)
+{
+    col = mix(color2, c.yyy, length(uv));
+    
+    vec2 s;
+    scene(vec3(uv,0.), s);
+    
+    float v, vip, res = mix(12.,100., s.x);
+    vec2 vi;
+    dvoronoi(res*uv, v, vi, vip);
+    float d = abs(v/res)-mix(.002,.0001, s.x);
+    col = mix(col, 4.*col,sm(-v/res+.01));
+    col = mix(col, mix(4.*color2, c.yyy, 2.*s.x), sm(d));
+}
+
 void main()
 {
-    rot3(vec3(1.1,1.3,1.5)*iTime, gR);
     vec2 uv = (gl_FragCoord.xy-.5*iResolution.xy)/iResolution.y,
         s;
-    vec3 col = c.yyy,
-        o = c.yyx+.2*c.yzy,
+        
+    
+    
+    rot3(mix(.1,1.,iFader7)*vec3(1.1,1.3,1.5)*iTime, gR);
+    color1 = mix(vec3(0.47,0.21,0.22), vec3(0.17,0.24,0.30), iScale);
+//     color1 = mix(color1, vec3(0.52,0.85,0.31), clamp(iTime-15., 0., 1.));
+    color2 = mix(vec3(0.22,0.21,0.47), .3*vec3(1.00,0.59,0.22),iScale);
+//     color2 = mix(color2, .15*c.xxx, clamp(iTime-15., 0., 1.));
+    
+    vec3 col = c.xxx,
+        o = c.yyx,
         r = c.xyy,
         t = c.yyy, 
         u = cross(normalize(t-o),-r),
         dir,
         n, 
         x,
-        c1 = c.yyy,
-        o0 = o,
-        x0;
+        c1,
+        o0 = o;
     int N = 150,
         i;
         
-    vec3 color1 = vec3(0.52,1.00,0.42);
-        
-    float d;
+    float d = .5;
     t = uv.x * r + uv.y * u;
     dir = normalize(t-o);
-    d = 0.;//-(o.z)/dir.y;
     
     for(i = 0; i<N; ++i)
     {
      	x = o + d * dir;
         scene(x,s);
-        if(s.x < 1.e-3)break;
-        d += s.x;//min(s.x,2.e-1);
-    }
-    
-    if(i < N)
-    {
-        if(s.y == 1.)
+        if(s.x < 1.e-5)break;
+        if(d > length(.6+.2*c.xx))
         {
-            vec3 l = .5*c.yyz;
-            normal(x,n, 2.e-5);
-            
-            col = c.xxx;
-            col = .3*col 
-                + .5*col*dot(-l, n)
-                + 1.7*col*pow(abs(dot(reflect(l,n),dir)),2.); 
+            i = N;
+            break;
         }
-        else col = c.yyy;
-    }
-    else col = c.yyy;
-    
-    for(i = 0; i<N; ++i)
-    {
-     	x = o + d * dir;
-        texture_scene(x,s);
-        if(s.x < 1.e-3)break;
-        d += s.x;//min(s.x,2.e-1);
+        d += s.x;
+
     }
     
     if(i < N)
     {
-        x0 = x;
+        vec3 l = 2.*normalize(x+2.*c.xxx);//x+c.yyx;
+//         vec3 l = x + .3*(o-x);
+        normal(x,n, 2.e-3);
         
-        vec3 l = x+c.yxy+.5*c.yyx;
-        texture_normal(x,n, 2.e-5);
         if(s.y == 0.)
         {
-            float na;
-            lfnoise(2.*ind-iTime, na);
-            palette(.5+.5*na, col);
-            
-//             col = length(col)/sqrt(3.)*c.xxx;
+            col = color1;
             
             col = .3*col 
                 + .5*col*dot(-l, n)
@@ -213,87 +146,74 @@ void main()
         }
         else if(s.y == 1.)
         {
-            vec3 c1;
+            col = color2;
             
-            col = c.xxx;
-            col = .3*col 
-                + .5*col*dot(-l, n)
-                + .7*col*pow(abs(dot(reflect(l,n),dir)),2.); 
-            
-            for(float k = 0.; k < 3.; k += 1.)
-            {
-                o = x;
-                dir = refract(dir, n, .5);
-                d = 1.e-2;
-                
-                for(i = 0; i<N; ++i)
-                {
-                    x = o + d * dir;
-                    scene(x,s);
-                    if(s.x < 1.e-5)break;
-                    d += s.x;//min(s.x,2.e-3);
-                }
-                
-                if(i < N)
-                {
-                    if(s.y == 1.)
-                    {
-                        vec3 l = .5*c.yyz;
-                        normal(x,n, 2.e-5);
-                        
-                        c1 = c.xxx;
-                        c1 = .3*c1 
-                            + .5*c1*dot(-l, n)
-                            + 1.7*c1*pow(abs(dot(reflect(l,n),dir)),2.); 
-                    }
-                    else c1 = c.yyy;
-                }
-                else c1 = c.yyy;
-                col = mix(col, c1, .54);
-                
-                for(i = 0; i<N; ++i)
-                {
-                    x = o + d * dir;
-                    texture_scene(x,s);
-                    if(s.x < 1.e-3)break;
-                    d += s.x;//min(s.x,2.e-1);
-                }
-                
-                if(i<N)
-                {
-                    vec3 l = x+c.yxy+.5*c.yyx;
-                    texture_normal(x,n, 2.e-5);
-                    if(s.y == 0.)
-                    {
-                        float na;
-                        lfnoise(ind, na);
-                        palette(.5+.5*na, c1);
-                        
-                        c1 = .4*c1 
-                            + .5*c1*dot(-l, n)
-                            + .7*c1*pow(abs(dot(reflect(l,n),dir)),2.);
-                    }
-//                     else c1 = c.yyy;
-                    
-                    col = mix(col, c1, .3);
-                }
-//                 else col = c.yyy;
-            }
+            col = .1*col 
+                + .1*col*dot(l, n)
+                + .6*col*pow(abs(dot(reflect(-l,n),dir)),2.);
         }
-//         else col *= -1.;
-    }
-//     else col = c.yyx;
         
-    float da = 1.;
-//     (abs(length(x0.xy)-.2)-.03),
-//         db;
-    scene(vec3(uv,.2), s);
-    da = abs(s.x-.1)-.003;
-//     dbox(x.xy, .4*c.xx, db);
-//     db = abs(db)-.03;
-//     da = mix(da, db, clamp(iTime-5.,0.,1.));
-    col = mix(col, 8.*col, sm(da/20.));
-    col = mix(1.5,2.,iScale)*col*col;
+        for(float k = .5; k < .6; k += .2)
+        {
+            o = x;
+            d = 1.e-3;
+            dir = refract(dir, n, .99);
+            
+            for(i = 0; i<N; ++i)
+            {
+                x = o + d * dir;
+                scene(x,s);
+                if(s.x < 1.e-5)break;
+                if(d > length(o0)+.4001)
+                {
+                    i = N;
+                    break;
+                }
+                d += s.x;
+
+            }
+            
+            if(i < N)
+            {
+                vec3 l = 2.*normalize(x+2.*c.xxx);//x+c.yyx;
+//                 vec3 l = x + .3*(o-x);
+                normal(x,n, 2.e-3);
+                
+                if(s.y == 0.)
+                {
+                    c1 = color1;
+                    
+                    c1 = .3*c1 
+                        + .5*c1*dot(-l, n)
+                        + .7*c1*pow(abs(dot(reflect(l,n),dir)),2.);
+                        
+                    c1 = mix(c1, c.xxx, smoothstep(0.458, .602, 1.-abs(dot(n, c.yyz))));
+                }
+                else if(s.y == 1.)
+                {
+                    c1 = color2;
+                    
+                    c1 = .1*c1 
+                        + .1*c1*dot(l, n)
+                        + .6*c1*pow(abs(dot(reflect(-l,n),dir)),2.);
+                }
+                else c1 = c.yyx;
+                
+                col = mix(c1, col, k);
+            }
+            else colorize(uv,col);
+        }
+    }
+    else colorize(uv,col);
     
+    col = 2.*col*col;
+    
+    
+//     col = mix(col, c0, clamp(iTime/2.,0.,1.));
+//     col = mix(col, c.yyy, clamp(iTime-9.,0.,1.));
+
+//     dhydrantradius(abs(uv.y), uv.x+.2, 0., d);
+//     col = mix(col, c.yyy, sm(abs(d)-.001));
+
     gl_FragColor = vec4(clamp(col,0.,1.),1.);
 }
