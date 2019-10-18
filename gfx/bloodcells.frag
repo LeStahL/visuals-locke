@@ -104,7 +104,7 @@ void dsmoothvoronoi(in vec2 x, out float d, out vec2 z)
 vec2 ind;
 void scene(in vec3 x, out vec2 sdf)
 {    
-    x.y += .3*iTime;
+    x.y += mix(.1,1.,iFader7)*iTime;
     float d;
     
     dsmoothvoronoi(3.*x.xy-1337.,d,ind);
