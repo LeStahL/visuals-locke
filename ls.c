@@ -91,8 +91,68 @@ void select_button(int _index)
     }
 }
 
+void CALLBACK MidiInProc_nanoKONTROL2(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2)
+{
+    if(wMsg == MIM_DATA)
+    {
+        BYTE b1 = (dwParam1 >> 24) & 0xFF,
+            b2 = (dwParam1 >> 16) & 0xFF,
+            b3 = (dwParam1 >> 8) & 0xFF,
+            b4 = dwParam1 & 0xFF;
+        BYTE b3lo = b3 & 0xF,
+            b3hi = (b3 >> 4) & 0xF,
+            b4lo = b4 & 0xF,
+            b4hi = (b4 >> 4) & 0xF;
+        
+        BYTE channel = b4lo,
+            button = b3;
+        
+        printf("KORG nanoKONTROL2: wMsg=MIM_DATA, dwParam1=%08x, byte=%02x %02x h_%01x l_%01x %02x, dwParam2=%08x\n", dwParam1, b1, b2, b3hi, b3lo, b4, dwParam2);
+        
+        if(b4 == 0xb0) // Fader or dial
+        {
+            if(b3hi == 0) // Fader
+            {
+                if(b3lo == 0) fader0 = (double)b2/(double)0x7f;
+                else if(b3lo == 1) fader1 = (double)b2/(double)0x7f;
+                else if(b3lo == 2) fader2= (double)b2/(double)0x7f;
+                else if(b3lo == 3) fader3 = (double)b2/(double)0x7f;
+                else if(b3lo == 4) fader4 = (double)b2/(double)0x7f;
+                else if(b3lo == 5) fader5 = (double)b2/(double)0x7f;
+                else if(b3lo == 6) fader6 = (double)b2/(double)0x7f;
+                else if(b3lo == 7) fader7 = (double)b2/(double)0x7f;
+            }
+            else if(b3hi == 1) // Dial
+            {
+                if(b3lo == 0) dial0 = (double)b2/(double)0x7f;
+                else if(b3lo == 1) dial1 = (double)b2/(double)0x7f;
+                else if(b3lo == 2) dial2= (double)b2/(double)0x7f;
+                else if(b3lo == 3) dial3 = (double)b2/(double)0x7f;
+                else if(b3lo == 4) dial4 = (double)b2/(double)0x7f;
+                else if(b3lo == 5) dial5 = (double)b2/(double)0x7f;
+                else if(b3lo == 6) dial6 = (double)b2/(double)0x7f;
+                else if(b3lo == 7) dial7 = (double)b2/(double)0x7f;
+            }
+            else if(b3hi == 4 | b3hi == 3 || b3hi == 2)
+            {
+                printf("button\n");
+                if(b1 == 0x0)
+                {
+                    select_button((b3hi-2)*8+b3lo);
+                    printf("button off, index: %d\n", (b3hi-2)*8+b3lo);
+                }
+            }
+        }
+        
+        draw();
+    }
+    
+    return;
+}
+
 #define NOTE_OFF 0x8
 #define NOTE_ON 0x9
+
 #define CONTROL_CHANGE 0xB
 
 #define TIME_DIAL 0x14
@@ -452,6 +512,15 @@ void load_demo()
                 midiInStart(hMidiDevice);
                 
                 printf(" >> opened.\n");
+            }
+            else if(!strcmp("nanoKONTROL2", caps.szPname))
+            {
+                HMIDIIN hMidiDevice;
+                MMRESULT rv = midiInOpen(&hMidiDevice, i, (DWORD)(void*)MidiInProc_nanoKONTROL2, 0, CALLBACK_FUNCTION);
+                midiInStart(hMidiDevice);
+                
+                printf(" >> opened.\n");
+
             }
             else
             {
