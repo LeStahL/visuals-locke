@@ -508,7 +508,7 @@ void load_demo()
             if(!strcmp("APC40 mkII", caps.szPname))
             {
                 HMIDIIN hMidiDevice;
-                MMRESULT rv = midiInOpen(&hMidiDevice, i, (DWORD)(void*)MidiInProc_apc40mk2, 0, CALLBACK_FUNCTION);
+                MMRESULT rv = midiInOpen(&hMidiDevice, i, (DWORD_PTR)(void*)MidiInProc_apc40mk2, 0, CALLBACK_FUNCTION);
                 midiInStart(hMidiDevice);
                 
                 printf(" >> opened.\n");
@@ -516,7 +516,7 @@ void load_demo()
             else if(!strcmp("nanoKONTROL2", caps.szPname))
             {
                 HMIDIIN hMidiDevice;
-                MMRESULT rv = midiInOpen(&hMidiDevice, i, (DWORD)(void*)MidiInProc_nanoKONTROL2, 0, CALLBACK_FUNCTION);
+                MMRESULT rv = midiInOpen(&hMidiDevice, i, (DWORD_PTR)(void*)MidiInProc_nanoKONTROL2, 0, CALLBACK_FUNCTION);
                 midiInStart(hMidiDevice);
                 
                 printf(" >> opened.\n");
