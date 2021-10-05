@@ -84,7 +84,8 @@ for inputfile in rest:
     # Extract symbol list from source file
     scene_symbol_list = []
     for line in input_source_lines:
-        if 'void' in line and ';' in line:
+        if 'void' in line and ';' in line and (not '#' in line):
+            # print("Symbol line: ", line)
             s = line.split()
             symbol_name = s[s.index('void') + 1].split('(')[0]
             if not symbol_name in symbol_list: 
