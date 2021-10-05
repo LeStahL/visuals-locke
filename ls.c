@@ -685,6 +685,16 @@ void draw()
     glUniform1f(shader_programs[override_index % l].uniforms[8].location, fader5);
     glUniform1f(shader_programs[override_index % l].uniforms[9].location, fader6);
     glUniform1f(shader_programs[override_index % l].uniforms[10].location, fader7);
+    
+    glUniform1f(shader_programs[override_index % l].uniforms[11].location, dial0);
+    glUniform1f(shader_programs[override_index % l].uniforms[12].location, dial1);
+    glUniform1f(shader_programs[override_index % l].uniforms[13].location, dial2);
+    glUniform1f(shader_programs[override_index % l].uniforms[14].location, dial3);
+    glUniform1f(shader_programs[override_index % l].uniforms[15].location, dial4);
+    glUniform1f(shader_programs[override_index % l].uniforms[16].location, dial5);
+    glUniform1f(shader_programs[override_index % l].uniforms[17].location, dial6);
+    glUniform1f(shader_programs[override_index % l].uniforms[18].location, dial7);
+
 //     glUniform1f(shader_programs[override_index % l].uniforms[3].location, fader0);
     quad();
 
@@ -737,7 +747,7 @@ void draw()
     glUniform1f(shader_uniform_gfx_text_iScale, scale);
     glUniform1f(shader_uniform_gfx_text_iShowQrCode, show_qr_code);
     
-#ifdef MIDI
+// #ifdef MIDI
     glUniform1f(shader_uniform_gfx_text_iFader0, fader0);
     glUniform1f(shader_uniform_gfx_text_iFader1, fader1);
     glUniform1f(shader_uniform_gfx_text_iFader2, fader2);
@@ -757,7 +767,7 @@ void draw()
     glUniform1f(shader_uniform_gfx_text_iDial7, dial7);
     
     glUniform1f(shader_uniform_gfx_text_iShowWindow, show_window);
-#endif
+// #endif
     
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, first_pass_texture);

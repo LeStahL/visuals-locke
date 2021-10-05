@@ -17,10 +17,11 @@
  
 #version 130
 
-void scale(out float s);
+// void scale(out float s);
 
 uniform float iTime;
 uniform vec2 iResolution;
+uniform vec2 iScale;
 
 uniform float iFader0;
 uniform float iFader1;
@@ -53,7 +54,7 @@ float lscale, rscale;
 float size;
 
 float nbeats;
-float iScale;
+// float iScale;
 
 
 void rand(in vec2 x, out float n);
@@ -299,31 +300,38 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
     }
     
     // Kaleidoscope
-    if(iFader3 > 0.)
+    if(iFader3 > 0. || iFader4 > 0.)
     {
         float a = iResolution.x/iResolution.y;
         vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
 //         rand(floor(.33*iTime)*c.xx, n.x);
 //         n.x = max(floor(12.*n.x),3.);
         n.x = floor(mix(3.,10.,iFader3));
-        float phi = abs(mod(atan(uv.y, uv.x),pi/n.x)-.5*pi/n.x);
-        uv = length(uv)*vec2(cos(phi), sin(phi));
+        n.y = floor(mix(3.,10.,iFader4));
+
+        vec2 rp = 2.*vec2(1.,pi)/n.xy;
+        rp = abs(mod(vec2(length(uv), 4.*pi+atan(uv.y, uv.x)), rp)-.5*rp);
+        uv = rp.x*vec2(cos(rp.y), sin(rp.y));
+        // float phi = abs(mod(atan(uv.y, uv.x),pi/n.x)-.5*pi/n.x);
+        // uv = length(uv)*vec2(cos(phi), sin(phi));
+        
         fragCoord = (uv + .5*vec2(a,1.))*iResolution.yy;
     }
     
-    // Voronoi tiles
-    if(iFader4 > 0.)
-    {
-        float a = iResolution.x/iResolution.y;
-        vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
+    // // Voronoi tiles
+    // Boxes/Spheres post! Not fader 4
+    // if(iFader4 > 0.)
+    // {
+    //     float a = iResolution.x/iResolution.y;
+    //     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
         
-        float dv, vp;
-        vec2 ind;
-        dvoronoi(mix(1.,100.,1.-iFader4)*uv, dv, ind, vp);
-        uv = ind/mix(1.,100.,1.-iFader4);
+    //     float dv, vp;
+    //     vec2 ind;
+    //     dvoronoi(mix(1.,100.,1.-iFader4)*uv, dv, ind, vp);
+    //     uv = ind/mix(1.,100.,1.-iFader4);
         
-        fragCoord = (uv + .5*vec2(a,1.))*iResolution.yy;
-    }
+    //     fragCoord = (uv + .5*vec2(a,1.))*iResolution.yy;
+    // }
     
    	for(float i = -.5*bound; i<=.5*bound; i+=1.)
         for(float j=-.5*bound; j<=.5*bound; j+=1.)
@@ -356,6 +364,33 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
     {
         col.rgb = mix(col.rgb, length(col.rgb)/sqrt(3.)*c.xxx, iFader6);
     }
+
+    // Fade to black
+    if(iDial0 > 0.)
+    {
+        col.rgb = mix(col.rgb, c.yyy, iDial0);
+    }
+
+    // Glow
+    if(iDial1 > 0.)
+    {
+        float a = iResolution.x/iResolution.y;
+        vec2 uv = fragCoord/iResolution.xy;
+        vec2 unit =  1./iResolution.xy;
+        vec4 col11 = texture(iChannel0, uv - unit),
+            col13 = texture(iChannel0, uv + unit*c.xz),
+            col31 = texture(iChannel0, uv + unit*c.zx),
+            col33 = texture(iChannel0, uv + unit),
+            x = col33 -col11 -3.* texture(iChannel0, uv + unit*c.yz) -col13 + col31 + 3.*texture(iChannel0, uv + unit*c.yx),
+            y = col33 -col11 -3.* texture(iChannel0, uv + unit*c.zy) -col31 + col13 + 3.*texture(iChannel0, uv + unit*c.xy);
+        col = vec4(mix(col.rgb, .5*(abs(y.rgb) + abs(x.rgb)).rgb, iDial1), 1.);
+    }
+
+    // Gamma
+    if(iDial2 > 0.)
+    {
+        col.rgb = mix(col, col + col*col + col * col * col, iDial2).rgb;
+    }
     
 //     vec3 as = texture(iChannel0, fragCoord/iResolution).rgb;
 //     vec2 nb;
@@ -366,7 +401,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
     float a = iResolution.x/iResolution.y;
     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
     
-    scale(iScale);
+    // scale(iScale);
     
 // //     nbeats = mod(iTime, 60./29.);
 //     iScale = nbeats-30./29.;
