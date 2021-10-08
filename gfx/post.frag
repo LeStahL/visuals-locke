@@ -338,7 +338,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
     {
         float a = iResolution.x/iResolution.y;
         // vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
-        vec2 uv = (fragCoord.xy -.5*iResolution.xy)/iResolution.y;
+        vec2 uv = (fragCoord.xy -.5*iResolution.xy-iDial7)/iResolution.y;
 //         rand(floor(.33*iTime)*c.xx, n.x);
 //         n.x = max(floor(12.*n.x),3.);
         n.x = round(mix(3.,10.,iFader3));

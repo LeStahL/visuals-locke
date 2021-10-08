@@ -116,7 +116,7 @@ void main_scene(in vec3 x, out vec2 sdf)
     const float size = .2;
     float d;
     
-    float p = 8.*x.x-2.*iTime;
+    float p = 8.*x.x-mix(2.,10.,iFader7)*iTime;
     mat2 R = mat2(cos(p), -sin(p), sin(p), cos(p));
     
     float na;

@@ -289,6 +289,24 @@ void CALLBACK MidiInProc_apc40mk2(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, 
             }
         }
 
+        // b1 = 0
+        // b2 = value
+        // b3h = 3
+        // b3l = id
+        // b4 = b0
+        // Main knob bar
+        if(b3hi == 0x3 && b4 == 0xb0)
+        {
+            if(b3lo == 0x0) // cutoff
+            {
+                cutoff = mix(96.,256.,(double)b2/(double)0x7F);
+            }
+            else if(b3lo == 0x1) // volume
+            {
+                volume = (double)b2/(double)0x7F;
+            }
+        }
+
         draw();
         
         printf("wMsg=MIM_DATA, dwParam1=%08x, byte=%02x %02x h_%01x l_%01x %02x, dwParam2=%08x\n", dwParam1, b1, b2, b3hi, b3lo, b4, dwParam2);
@@ -612,7 +630,7 @@ void draw()
     {
         for(int i=0; i<double_buffered+1; ++i)
         {
-            cutoff = (int)mix(96.,256.,dial2);
+            // cutoff = (int)mix(96.,256.,dial2);
             if(headers[i].dwFlags & WHDR_DONE)
             {
                 // Replace last block in values
@@ -624,7 +642,7 @@ void draw()
                 // Fourier transform values
                 for(int j=0; j<NFFT; ++j)
                 {
-                    in[j][0] = values[j];
+                    in[j][0] = values[j]*volume;
                     in[j][1] = 0.;
                 }
                 fftw_execute(p);

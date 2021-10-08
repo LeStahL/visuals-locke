@@ -20,6 +20,8 @@
 uniform float iTime;
 uniform vec2 iResolution;
 
+uniform float iScale;
+
 uniform float iFader0;
 uniform float iFader1;
 uniform float iFader2;
@@ -37,10 +39,6 @@ uniform float iDial4;
 uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
-
-float iScale;
-
-void scale(out float s);
 
 const float pi = acos(-1.);
 const vec3 c = vec3(1.,0.,-1.);
@@ -110,7 +108,7 @@ void colorize(in vec2 x, inout vec3 col)
 void dbox(in vec2 x, in vec2 b, out float d);
 void street(in vec2 x, out vec3 col)
 {
-    x.y += .3*iTime;
+    x.y += mix(.1,1.,iFader7)*iTime;
     
     float dx;
     lfnoise(x.y*c.xx, dx);
@@ -139,7 +137,7 @@ void dbox3(in vec3 x, in vec3 b, out float d);
 void add(in vec2 sda, in vec2 sdb, out vec2 sdf);
 void scene(in vec3 x, out vec2 sdf)
 {
-    x.y += .3*iTime;
+    x.y += mix(.1,1.,iFader7)*iTime;
     
     float dx;
     lfnoise((x.y)*c.xx, dx);
@@ -183,7 +181,6 @@ void palette(in float scale, out vec3 col)
 
 void main()
 {
-    scale(iScale);
     a = iResolution.x/iResolution.y;
     vec2 uv = (gl_FragCoord.xy-.5*iResolution)/iResolution.y,
         s;

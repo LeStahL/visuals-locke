@@ -19,6 +19,7 @@
  
 uniform float iTime;
 uniform vec2 iResolution;
+uniform float iScale;
 
 uniform float iFader0;
 uniform float iFader1;
@@ -38,9 +39,8 @@ uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
 
-float iScale;
 
-void scale(out float s);
+// void scale(out float s);
 
 const float pi = acos(-1.);
 const vec3 c = vec3(1.,0.,-1.);
@@ -92,7 +92,7 @@ void normal(in vec3 x, out vec3 n, in float dx);
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    scale(iScale);
+    // scale(iScale);
     float a = iResolution.x/iResolution.y;
     vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
     
@@ -103,15 +103,16 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 o, t, dir, x, n;
     
     mat3 Ra, Rb;
-    rot3(mix(c.yyy,vec3(-5.7884463,2.4242211,0.3463173),clamp((iTime-6.)/1.5,0.,1.)), Ra);
-    rot3(mix(c.yyy,vec3(-2.*pi+5.7884463,-2.4242211,-0.3463173)+pi*c.xyy,clamp((iTime-10.),0.,1.)), Rb);
+    // rot3(mix(c.yyy,vec3(-5.7884463,2.4242211,0.3463173),clamp((iTime-6.)/1.5,0.,1.)), Ra);
+    // rot3(mix(c.yyy,vec3(-2.*pi+5.7884463,-2.4242211,-0.3463173)+pi*c.xyy,clamp((iTime-10.),0.,1.)), Rb);
+    rot3((1.+iFader7)*vec3(.5,.3,.7)*iTime, Ra);
     
-    
-    o = Ra * mix(mix(mix(c.yyy-.005*c.yyx,c.yyx,clamp(iTime/2.,0.,1.)),10.*c.yyx,clamp((iTime-2.)/2.,0.,1.)), 100.*c.yyx, clamp((iTime-4.)/2.,0.,1.));
+    // o = Ra * mix(mix(mix(c.yyy-.005*c.yyx,c.yyx,clamp(iTime/2.,0.,1.)),10.*c.yyx,clamp((iTime-2.)/2.,0.,1.)), 100.*c.yyx, clamp((/*iTime*/4.-4.)/2.,0.,1.));
+    o = Ra * 50.*c.yyx;
 	t = c.yyy;
     int N = 650,
         i;
-    dir = Rb * Ra *normalize(vec3(uv,-1.));//normalize(t-o);
+    dir = Ra * normalize(vec3(uv,-1.));//normalize(t-o);
 //     dir = mix(dir, normalize(vec3(uv,1.)), clamp(iTime-10.,0.,1.));
     
     for(i = 0; i<N; ++i)
@@ -137,7 +138,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         }
         else if(s.y == 2.)
         {
-            col = .7*c.xxx;
+            col = .5*c.xxx;
             col = .5*col
                 + .4*col * abs(dot(l,n))
                 + .8 * col * abs(pow(dot(reflect(-l,n),dir),3.));
@@ -172,7 +173,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                 }
                 else if(s.y == 2.)
                 {
-                    c1 = .7*c.xxx;
+                    c1 = .1*c.xxx;
                     c1 = .5*c1
                         + .4*c1 * abs(dot(l,n))
                         + .8 * c1 * abs(pow(dot(reflect(-l,n),dir),3.));
@@ -186,7 +187,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         }
         
     }
-    col = mix(col,c.xxx,smoothstep(0.,1.,iTime-11.));
+    // col = mix(col,c.xxx,smoothstep(0.,1.,iTime-11.));
     
     col = mix(vec3(0.18,0.24,0.31), col, clamp(iTime,0.,1.));
     

@@ -326,7 +326,7 @@ vec3 scene(vec3 x)
     vec3 pn = mix(p1,p2,t),
         y = mt * (x - pn);
     
-    return vec3(2., abs(fHedron(y, 6, 16, mix(.02,.06,t), true))-.002, .5);
+    return vec3(2., abs(fHedron(y, 6, 16, mix(.01+.01*iScale,.03+.03*iScale,t), true))-.002, .5);
 }
 
 vec2 as;
@@ -385,7 +385,7 @@ bool ray(inout vec3 col, out vec3 x, float d, vec3 dir, out vec3 s, vec3 o, vec3
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    RR = rot3(.3*vec3(1.1,1.3,1.5)*iTime);
+    RR = rot3(mix(.1,1.,iFader7)*vec3(1.1,1.3,1.5)*iTime);
     vec2 uv = fragCoord/iResolution.xy,
         unit = 1./iResolution.xy;
     ivec2 index = ivec2(fragCoord);

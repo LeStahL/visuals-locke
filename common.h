@@ -60,6 +60,8 @@ double_buffered = 0,
 scale_override = 0,
 cutoff = 96;
 double scale, sscale, ssscale, highscale;
+double volume = 1.;
+
 
 #define clamp(x, minimum, maximum) min(max(x, minimum), maximum)
 

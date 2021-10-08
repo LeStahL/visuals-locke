@@ -15,9 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- #version 130
+#version 130
  
- uniform float iTime;
+uniform float iTime;
 uniform vec2 iResolution;
 uniform float iScale;
 
@@ -79,11 +79,11 @@ void add(in vec2 sda, in vec2 sdb, out vec2 sdf)
 vec2 ind;
 void scene(in vec3 x, out vec2 sdf)
 {
-    x.y += .3*iTime;
+    x.y += mix(.1,1.,iFader7)*iTime;
     x.xy = vec2(x.x-x.y,x.x+x.y)/sqrt(2.);
     
     float d,
-        size = .1;
+        size = mix(.1,.2,iScale);
     vec2 x2 = mod(x.xy,size)-.5*size;
 	
     ind = (x.xy - x2)/size;
@@ -129,7 +129,7 @@ float sm(float d)
 
 void colorize(in vec2 x, out vec3 col)
 {
-    x.y += .3*iTime;
+    x.y += mix(.1,1.,iFader7)*iTime;
     x = vec2(x.x-x.y,x.x+x.y)/sqrt(2.);
     
     float d,
@@ -181,12 +181,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         dir,
         n,
         x;
-    int N = 100,
+    int N = 300,
         i;
     t = uv.x * r + uv.y * u;
     dir = normalize(t-o);
 
-    float d = -(o.z-.15)/dir.z;
+    float d = -(o.z-mix(.25,.45,iScale))/dir.z;
     
     for(i = 0; i<N; ++i)
     {

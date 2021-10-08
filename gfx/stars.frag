@@ -242,7 +242,7 @@ float holeSDF(vec3 x, float zj)
     float ag = mix(2.,12.,.5+.5*r)*zj*r;
     mat2 RB = mat2(cos(ag), sin(ag), -sin(ag), cos(ag));
     float da = -abs(star(RB*(x.xy-vec2(r,s)*.5), abs(1.*r+.1*zj), abs(1.*s-.1*zj), round(5.+r+s)))+.05-.1*zj,
-        db = (mod(da, .2))-.09*2.1;
+        db = (mod(da, .2))-mix(.09, .05, iScale)*2.1;
     rj = da - db;
     
     return db;
@@ -335,7 +335,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     // Sync tools
     float stepTime = mod(iTime, spb)-.5*spb;
-    nbeats = .5*iTime;
+    nbeats = mix(.5, 1.5, iFader7)*iTime;
     // scale = smoothstep(-.3*spb, 0., stepTime)*smoothstep(.3*spb, 0., stepTime);
 	scale = iScale;
 
