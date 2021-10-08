@@ -146,7 +146,7 @@ void dsmoothpolygon(in vec2 x, in float N, in float s, out float ret)
 void main_scene(in vec3 x, out vec2 sdf)
 {
 
-    x.y += .4*iTime;
+    x.y += mix(.1,1.,iFader7)*iTime;
     
     sdf = vec2(x.z+.4, 0.);
     
