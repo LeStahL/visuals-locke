@@ -391,6 +391,15 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
     {
         col.rgb = mix(col, col + col*col + col * col * col, iDial2).rgb;
     }
+
+    // Strobe
+    if(iDial3 > 0.)
+    {
+        float onOff = 1./(1.+10.*iDial3),
+            dt = mod(iTime, onOff)-.5*onOff;
+        if(dt > 0.)
+            col.rgb = mix(col.rgb, c.xxx, .7);
+    }
     
 //     vec3 as = texture(iChannel0, fragCoord/iResolution).rgb;
 //     vec2 nb;
