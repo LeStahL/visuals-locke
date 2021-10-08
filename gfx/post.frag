@@ -46,7 +46,7 @@ uniform float iFSAA;
 
 out vec4 gl_FragColor;
 
-const float pi = acos(-1.);
+const float pi = 3.14159;
 const vec3 c = vec3(1.,0.,-1.);
 float a = 1.0;
 
@@ -337,19 +337,24 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
     if(iFader3 > 0. || iFader4 > 0.)
     {
         float a = iResolution.x/iResolution.y;
-        vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
+        // vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
+        vec2 uv = (fragCoord.xy -.5*iResolution.xy)/iResolution.y;
 //         rand(floor(.33*iTime)*c.xx, n.x);
 //         n.x = max(floor(12.*n.x),3.);
-        n.x = floor(mix(3.,10.,iFader3));
-        n.y = floor(mix(3.,10.,iFader4));
+        n.x = round(mix(3.,10.,iFader3));
+        n.y = round(mix(3.,10.,iFader4));
 
-        vec2 rp = 2.*vec2(1.,pi)/n.xy;
-        rp = abs(mod(vec2(length(uv), 4.*pi+atan(uv.y, uv.x)), rp)-.5*rp);
-        uv = rp.x*vec2(cos(rp.y), sin(rp.y));
+        vec2 rs = 1.*vec2(1.,pi)/(.1+n.xy), 
+            rp = vec2(length(uv), mod(9.*pi+atan(uv.y, uv.x), 2.*pi)),
+            drp = abs(mod(rp, rs)-.5*rs)+pi*c.yx,
+            rpj = rp-drp;
+        uv = drp.x*vec2(cos(drp.y), sin(drp.y));
+
+        // if(round(rpj/rs).x == 2.) col.rgb = c.yxy;
         // float phi = abs(mod(atan(uv.y, uv.x),pi/n.x)-.5*pi/n.x);
         // uv = length(uv)*vec2(cos(phi), sin(phi));
         
-        fragCoord = (uv + .5*vec2(a,1.))*iResolution.yy;
+        fragCoord = (uv*iResolution.y + .5*iResolution.xy);
     }
     
     // // Voronoi tiles

@@ -133,6 +133,7 @@ void main_scene(in vec3 x, out vec2 sdf)
     add(sdf, vec2((length(R*x.yz+mix(-.15*c.yx,-(.15+.15*x.x*x.x)*vec2(cos(dpsj), sin(dpsj)),clamp(iTime-29.222+.25,0.,.5)/.5))-.03+mix(-.06,.06,clamp(iTime-12.105+.25,0.,.5)/.5)*x.x)-.01-.01*na, 7.), sdf);
     add(sdf, vec2((length(R*x.yz-.19*c.zx)-.03+mix(-.07,.07,clamp(iTime-12.105+.25,0.,.5)/.5)*x.x)-.01-.01*na, 6.), sdf);
     add(sdf, vec2((length(R*x.yz-.1*c.yx)-.03+mix(-.04,.04,clamp(iTime-12.105+.25,0.,.5)/.5)*x.x-.01*sin(iTime-5.*x.x)-.01*na)-.01, 4.), sdf);
+    sdf.x -= .05*iScale;
 }
 
 
@@ -528,15 +529,15 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     // col = mix(col, col.brg, iScale);
 
 
-    vec3 hsv;
-    rgb2hsv(col, hsv);
-    hsv.x = mix(.5,.33, clamp(iTime-12.105+.25,0.,.5)/.5);
-    hsv2rgb(hsv, c1);
-    col = mix(col, c1, clamp(iTime-5.910+.25,0.,.5)/.5);
+    // vec3 hsv;
+    // rgb2hsv(col, hsv);
+    // hsv.x = mix(.5,.33, clamp(iTime-12.105+.25,0.,.5)/.5);
+    // hsv2rgb(hsv, c1);
+    // col = mix(col, c1, clamp(iTime-5.910+.25,0.,.5)/.5);
 
-    col = mix(col, c.xxx*length(col)/sqrt(3.), clamp(iTime-37.302+.25,0.,.5)/.5);
+    // col = mix(col, c.xxx*length(col)/sqrt(3.), clamp(iTime-37.302+.25,0.,.5)/.5);
 
-    col = mix(c.yyy, col, 1.-clamp(iTime-49.137+.25,0.,1.)/.5);
+    // col = mix(c.yyy, col, 1.-clamp(iTime-49.137+.25,0.,1.)/.5);
     fragColor = vec4(clamp(col,0.,1.),1.);
 }
 
