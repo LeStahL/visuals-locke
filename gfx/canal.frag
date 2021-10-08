@@ -65,7 +65,7 @@ void scene(in vec3 x, out vec2 sdf)
     x = R * x;
 
 //     x.y = mix(x.y,-x.y,step(156., iTime));
-    x.z -= mix(1.3,-1.3,step(156., iTime))*iTime;
+    x.z -= mix(.1,1.,iFader7)*iTime;
     
     float dx,
         d, v;

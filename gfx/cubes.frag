@@ -83,7 +83,7 @@ void scene(in vec3 x, out vec2 sdf)
     x.xy = vec2(x.x-x.y,x.x+x.y)/sqrt(2.);
     
     float d,
-        size = mix(.1,.2,iScale);
+        size = mix(.1,.2,iFader7);
     vec2 x2 = mod(x.xy,size)-.5*size;
 	
     ind = (x.xy - x2)/size;
@@ -101,7 +101,7 @@ void scene(in vec3 x, out vec2 sdf)
     {
         r2 = 1.;
         dbox(x2, .5*size*c.xx, d);
-        zextrude(x.z, -d-.02, .3*(r-.7)/.3*r2, d);
+        zextrude(x.z, -d-.02, .3*(r-.7)/.3*r2*iScale, d);
         stroke(d, .001, d);
         add(sdf, vec2(d,1.), sdf);
     }
@@ -133,7 +133,7 @@ void colorize(in vec2 x, out vec3 col)
     x = vec2(x.x-x.y,x.x+x.y)/sqrt(2.);
     
     float d,
-        size = .1,
+        size = mix(.1,.2,iFader7),
         r;
     vec2 x2 = mod(x.xy,size)-.5*size;
     
@@ -186,7 +186,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     t = uv.x * r + uv.y * u;
     dir = normalize(t-o);
 
-    float d = -(o.z-mix(.25,.45,iScale))/dir.z;
+    float d = -(o.z-mix(.25,.45,iFader7))/dir.z;
     
     for(i = 0; i<N; ++i)
     {
@@ -238,7 +238,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
             c1 = .1*c1
                 + .8*c1 * abs(dot(l,n))
                 + c1 * pow(abs(dot(reflect(-l,n),dir)),3.);
-            col = mix(col, c1, .3);
+            col = mix(col, c1, .1);
         }
         else if(s.y == 2.)
         {

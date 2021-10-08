@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- #version 130
- uniform float iTime;
+#version 130
+uniform float iTime;
 uniform vec2 iResolution;
 uniform float iScale;
 
@@ -136,7 +136,7 @@ void smoothmin(in float a, in float b, in float k, out float dst)
 float ind;
 void graf(in vec2 x, in vec2 size, in float w, out float dst)
 {
-    x.x += .3*iTime;
+    x.x += mix(.1,1.,iFader7)*iTime;
     x.y -= .1;
     
     vec2 y = vec2(mod(x.x, size.x)-.5*size.x, x.y);
@@ -235,7 +235,7 @@ void normal(in vec3 x, out vec3 n, in float dx)
 
 void colorize(in vec2 x, out vec3 col)
 {
-    x.x += .3*iTime;
+    x.x += mix(.1,1.,iFader7)*iTime;
     x.y -= .05;
     
     col = .5*c.xxx;
