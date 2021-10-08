@@ -56,6 +56,40 @@ float size;
 float nbeats;
 // float iScale;
 
+void hsv2rgb(in vec3 hsv, out vec3 rgb)
+{
+    float C = hsv.y * hsv.z,
+        Hprime = hsv.x / pi * 3.,
+        X = C * (1.-abs(mod(Hprime,2.)-1.));
+    
+    if(0. <= Hprime && Hprime <= 1.) rgb = vec3(C, X, 0.);
+    else if( 1. < Hprime && Hprime <= 2.) rgb = vec3(X, C, 0.);
+    else if( 2. < Hprime && Hprime <= 3.) rgb = vec3(0., C, X);
+    else if( 3. < Hprime && Hprime <= 4.) rgb = vec3(0., X, C);
+    else if( 4. < Hprime && Hprime <= 5.) rgb = vec3(X, 0., C);
+    else if( 5. < Hprime && Hprime <= 6.) rgb = vec3(C, 0., X);
+        
+    float m = hsv.z - C;
+    rgb += m;
+}
+
+void rgb2hsv(in vec3 rgb, out vec3 hsv)
+{
+    float MAX = max(rgb.r, max(rgb.g, rgb.b)),
+        MIN = min(rgb.r, min(rgb.g, rgb.b)),
+        C = MAX-MIN;
+    
+    if(MAX == MIN) hsv.x = 0.;
+    else if(MAX == rgb.r) hsv.x = pi/3.*(rgb.g-rgb.b)/C;
+    else if(MAX == rgb.g) hsv.x = pi/3.*(2.+(rgb.b-rgb.r)/C);
+    else if(MAX == rgb.b) hsv.x = pi/3.*(4.+(rgb.r-rgb.g)/C);
+    hsv.x = mod(hsv.x, 2.*pi);
+        
+    if(MAX == 0.) hsv.y = 0.;
+    else hsv.y = (MAX-MIN)/MAX;
+        
+    hsv.z = MAX;
+}
 
 void rand(in vec2 x, out float n);
 void lfnoise(in vec2 t, out float n);
@@ -400,6 +434,36 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
         if(dt > 0.)
             col.rgb = mix(col.rgb, c.xxx, .7);
     }
+
+    // hue modulation
+    if(iDial4 > 0.)
+    {
+        vec3 hsv;
+        rgb2hsv(col.rgb, hsv);
+        hsv.r = mod(hsv.r + 10.*(-1.+2.*iDial4), 2.*pi);
+        hsv2rgb(hsv, col.rgb);
+    }
+
+    // saturation decrease
+    if(iDial5 > 0.)
+    {
+        vec3 hsv;
+        rgb2hsv(col.rgb, hsv);
+        hsv.g = mod(hsv.g*(1.-iDial5), 2.*pi);
+        hsv2rgb(hsv, col.rgb);
+    }
+    
+    // saturation increase
+    if(iDial6 > 0.)
+    {
+        vec3 hsv;
+        rgb2hsv(col.rgb, hsv);
+        hsv.g = mod(hsv.g*(1.+iDial6), 2.*pi);
+        hsv2rgb(hsv, col.rgb);
+    }
+
+
+
     
 //     vec3 as = texture(iChannel0, fragCoord/iResolution).rgb;
 //     vec2 nb;

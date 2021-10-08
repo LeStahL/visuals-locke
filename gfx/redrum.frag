@@ -209,16 +209,18 @@ SceneData scene(vec3 x)
     vec2 z = mod(x.xy, 1.5*s)-.75*s,
         w = mod(x.xy, .25*s)-.125*s;
     
-    inverseSF(normalize(R*(x-.5*R*c.yxy)), 31., q);
+    inverseSF(normalize(R*(x-.5*R*c.yxy)), 31.+ 120.*iScale, q);
     
     // Random material
     hash33(yi, r);
     r = 2.*r-1.;
     m += step(r.x+r.y+r.z,-1.);
     
+    float rad = .2+.2*iScale;
+
     SceneData d = add(
         // Nippelball
-        SceneData(0.,smoothmin(length(x-.5*R*c.yxy)-.2, length(R*(x-R*.5*c.yxy)-.2*q)-.04, .03), .3, .8, 0., .5, 1.),
+        SceneData(0.,smoothmin(length(x-.5*R*c.yxy)-rad, length(R*(x-R*.5*c.yxy)-rad*q)-.04, .03), .3, .8, 0., .5, 1.),
         // Ceiling
         SceneData(3.,-x.z+.9, 0., .0, 0., 1., 1.5)
     );
@@ -392,7 +394,7 @@ mat3 rot3(vec3 p)
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-    R = mat3(1.);//rot3(vec3(1.1,1.3,1.7)*iTime);
+    R = rot3(mix(.1,1., iFader7)*vec3(1.1,1.3,1.7)*iTime);
 
     float d = 0.,
         d1;
@@ -412,7 +414,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         s1;
         
     // Material ray
-    d = min(asphere(o-.5*R*c.yxy, dir, .24).x, abox3(o+.075*c.yyx, dir, vec3(1.,1.,.925)).y);
+    d = min(asphere(o-.5*R*c.yxy, dir, (.2+.2*iScale)+.04).x, abox3(o+.075*c.yyx, dir, vec3(1.,1.,.925)).y);
     
     if(ray(col, x, d, dir, s, o, l, n))
     {
