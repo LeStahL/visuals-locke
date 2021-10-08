@@ -68,6 +68,7 @@ set(SHADER_FILES
         gfx/montana.frag
         gfx/tentacles.frag
         gfx/redrum.frag
+        gfx/glosscubes.frag
 )
 set(SHADER_SYMBOLS_PATH gfx/symbols/)
 set(STRINGS_FILE font/strings.txt)
