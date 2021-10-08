@@ -1,5 +1,8 @@
+#version 430
+
 uniform float iTime;
 uniform vec2 iResolution;
+uniform float iScale;
 
 uniform float iFader0;
 uniform float iFader1;
@@ -19,9 +22,9 @@ uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
 
-float iScale;
+// float iScale;
 
-void scale(out float s);
+// void scale(out float s);
 
 // Global constants
 const float pi = acos(-1.);
@@ -52,9 +55,49 @@ void dkewlers(in vec2 x, out float d);
 void dfarbrausch(in vec2 x, out float d);
 void d5711(in vec2 x, out float ret);
 
+float datz(vec2 uv)
+{
+    float d0;
+    dpolygon(.5*uv,6.0,d0);
+    uv *= .9;
+    vec2 a = abs(uv)-.25;
+    float d = max(max(min(max(min(abs(mod(uv.x-1./12.,1./6.)-1./12.)-1./30., abs(a.x+a.y)-.015),a.x+a.y), max(a.x+.1,a.y+.1)), -length(uv-vec2(0.,.04))+.045), -max(a.x+.225,a.y+.175));
+    return max(d0, -d);
+}
+
+float dboxa(vec2 x, vec2 b)
+{
+    vec2 da = abs(x)-b;
+    return length(max(da,c.yy)) + min(max(da.x,da.y),0.0);
+}
+
+float dk2(vec2 x)
+{
+    float d0;
+    dpolygon(.5*x,6.0,d0);
+    vec2 y = x-vec2(-.35,.025),
+        z = x+vec2(-.3,-.025);
+    float d = 
+        min(
+            // K
+            min(
+                dboxa(abs(y)-.225, vec2(.025,.15)),
+                dboxa(vec2(y.x, abs(y.y)-.225)-vec2(.1,-.125), vec2(.15,.025))
+            ),
+            // 2
+            min(
+                dboxa(vec2(z.x,abs(abs(z.y)-.225)-.125), vec2(.25,.025)),
+                dboxa(vec2(abs(z.x)-.225,z.y-sign(abs(z.x+.225)-.225)*.225), vec2(.025,.15))
+            )
+        );
+
+    d = d-.05;
+    return max(d0,-d);
+}
+
 void main()
 {
-    scale(iScale);
+    // scale(iScale);
     vec2 uv = (gl_FragCoord.xy-.5*iResolution.xy)/iResolution.y,
         hind;
     vec3 col = c.yyy,
@@ -89,38 +132,60 @@ void main()
     addwindow(uv, col, vec2(.6,.4));
     
     float d, da;
-    if(iTime < 3.) dmercury(5.*uv, d);
-    else if(iTime < 7.)
+    float ts = 5.,
+        t0 = mod(iTime, ts),
+        tt = round((iTime - t0)/ts);
+    tt = mod(tt, 7.);
+
+    if(tt == 0.) 
+    {
+        d = dk2(5.*uv);
+        dmercury(5.*uv, da);
+        d = mix(d, da, smoothstep(0.,1., t0));
+    }
+    else if(tt == 1.)
     {
         dmercury(5.*uv, d);
         dschnappsgirls(5.*uv, da);
-        d = mix(d, da, clamp(iTime-3., 0., 1.));
+        d = mix(d, da, smoothstep(0.,1., t0));
     }
-    else if(iTime < 11.)
+    else if(tt == 2.)
     {
         dschnappsgirls(5.*uv, d);
         dhaujobb(5.*uv, da);
-        d = mix(d, da, clamp(iTime-7., 0., 1.));
+        d = mix(d, da, smoothstep(0.,1., t0));
     }
-    else if(iTime < 15.)
+    else if(tt == 2.)
     {
         dhaujobb(5.*uv, d);
         dkewlers(5.*uv, da);
-        d = mix(d, da, clamp(iTime-11., 0., 1.));
+        d = mix(d, da, smoothstep(0.,1., t0));
     }
-    else if(iTime < 19.)
+    else if(tt == 3.)
     {
         dkewlers(5.*uv, d);
         dfarbrausch(5.*uv, da);
-        d = mix(d, da, clamp(iTime-15., 0., 1.));
+        d = mix(d, da, smoothstep(0.,1., t0));
     }
-    else if(iTime < 23.)
+    else if(tt == 4.)
     {
         dfarbrausch(5.*uv, d);
         d5711(5.*uv, da);
-        d = mix(d, da, clamp(iTime-19., 0., 1.));
+        d = mix(d, da, smoothstep(0.,1., t0));
     }
-    else d = mix(d, 1., clamp(iTime-23.,0.,1.));
+    else if(tt == 5.)
+    {
+        d5711(5.*uv, d);
+        da = datz(5.*uv);
+        d = mix(d, da, smoothstep(0.,1., t0));
+    }
+    else if(tt == 6.)
+    {
+        d = datz(5.*uv);
+        da = dk2(5.*uv);
+        d = mix(d, da, smoothstep(0.,1., t0));
+    }
+    
     d /= 5.;
     col = mix(col, 1.9*col1, sm(d));
     col = mix(col, mix(col, 3.*col1, .5+.5*iScale), sm((abs(d-.01)-.001)/22.));
