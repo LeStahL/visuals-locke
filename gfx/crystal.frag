@@ -22,6 +22,8 @@ uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
 
+out vec4 out_color;
+
 // TODO: hexagon pattern background or grid, or starfield
 // TODO: maybe splines? does that look cool? hm ne
 // TODO: another (smaller spikes) as well?
@@ -445,5 +447,5 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 void main()
 {
-	mainImage(gl_FragColor, gl_FragCoord.xy);
+	mainImage(out_color, gl_FragCoord.xy);
 }

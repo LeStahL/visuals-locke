@@ -22,6 +22,8 @@ uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
 
+out vec4 out_color;
+
 const float pi = acos(-1.);
 const vec3 c = vec3(1.,0.,-1.);
 const float box_size = .4,
@@ -616,5 +618,5 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 void main()
 {
-    mainImage(gl_FragColor, gl_FragCoord.xy);
+    mainImage(out_color, gl_FragCoord.xy);
 }

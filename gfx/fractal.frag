@@ -22,7 +22,7 @@ uniform float iDial5;
 uniform float iDial6;
 uniform float iDial7;
 
-
+out vec4 out_color;
 // Global constants
 const float pi = acos(-1.);
 const vec3 c = vec3(1.0, 0.0, -1.0);
@@ -217,5 +217,5 @@ void main()
 //     dhydrantradius(abs(uv.y), uv.x+.2, 0., d);
 //     col = mix(col, c.yyy, sm(abs(d)-.001));
 
-    gl_FragColor = vec4(clamp(col,0.,1.),1.);
+    out_color = vec4(clamp(col,0.,1.),1.);
 }
