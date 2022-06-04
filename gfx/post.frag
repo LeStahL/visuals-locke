@@ -118,20 +118,19 @@ vec2 caleid(vec2 uv, vec2 xylow, vec2 xyup, float mirror_count)
     {
         // Random evolving shit
         vec2 p0 = mix(xylow, xyup, unit_lfnoise2(i*c.xx+.03*iTime)), 
-            p1 = mix(xylow, xyup, unit_lfnoise2(i*c.xx+55.13+.03*iTime)),
-            dir = normalize(p1 - p0);
+            dir = normalize(2.*unit_lfnoise2(i*c.xx+55.13+.03*iTime)-1.);
 
         // Set up householder transformation
         mat2 H = mat2(1.) - 2.*outerProduct(dir, dir);
-        uv = mix(p1 + H * (uv-p1), uv, sm(dot(uv-p1,dir)));
+        uv = mix(uv, p0 + H * (uv-p0), sm(dot(uv-p0,dir)));
     }
-
-    // Remove border glitch
+    
+    // enforce GL_MIRRORED_REPEAT
     vec2 duv = mod(uv, xyup-xylow),
         uvj = round((uv-duv)/(xyup-xylow));
     uv = mix(uv, xyup-uv, mod(uvj, 2.));
     
-    return uv;
+    return xylow + mod(uv, xyup-xylow);
 }
 
 float dot2( in vec3 v ) { return dot(v,v); }
