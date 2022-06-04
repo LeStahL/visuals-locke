@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
  
-#version 130
-
+#version 450
+// s
 // void scale(out float s);
 
 uniform float iTime;
@@ -44,7 +44,7 @@ uniform float iDial7;
 uniform sampler2D iChannel0;
 uniform float iFSAA;
 
-out vec4 gl_FragColor;
+out vec4 out_color;
 
 const float pi = 3.14159;
 const vec3 c = vec3(1.,0.,-1.);
@@ -97,9 +97,41 @@ void stroke(in float d0, in float s, out float d);
 void dvoronoi(in vec2 x, out float d, out vec2 p, out float control_distance);
 void hash22(in vec2 x, out vec2 y);
 void rot3(in vec3 p, out mat3 rot);
-float sm(float d)
+
+// Paint with antialiasing
+float sm(in float d)
 {
     return smoothstep(1.5/iResolution.y, -1.5/iResolution.y, d);
+}
+
+vec2 unit_lfnoise2(vec2 t)
+{
+    vec2 va;
+    lfnoise(t, va.x);
+    lfnoise(t+133.3, va.y);
+    return .5*va+.5;
+}
+
+vec2 caleid(vec2 uv, vec2 xylow, vec2 xyup, float mirror_count)
+{
+    for(float i = 0.; i < mirror_count; i += 1.)
+    {
+        // Random evolving shit
+        vec2 p0 = mix(xylow, xyup, unit_lfnoise2(i*c.xx+.03*iTime)), 
+            p1 = mix(xylow, xyup, unit_lfnoise2(i*c.xx+55.13+.03*iTime)),
+            dir = normalize(p1 - p0);
+
+        // Set up householder transformation
+        mat2 H = mat2(1.) - 2.*outerProduct(dir, dir);
+        uv = mix(p1 + H * (uv-p1), uv, sm(dot(uv-p1,dir)));
+    }
+
+    // Remove border glitch
+    vec2 duv = mod(uv, xyup-xylow),
+        uvj = round((uv-duv)/(xyup-xylow));
+    uv = mix(uv, xyup-uv, mod(uvj, 2.));
+    
+    return uv;
 }
 
 float dot2( in vec3 v ) { return dot(v,v); }
@@ -334,27 +366,28 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
     }
     
     // Kaleidoscope
-    if(iFader3 > 0. || iFader4 > 0.)
+    if(iFader3 > 0.)
     {
-        float a = iResolution.x/iResolution.y;
-        // vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
-        vec2 uv = (fragCoord.xy -.5*iResolution.xy-iDial7)/iResolution.y;
-//         rand(floor(.33*iTime)*c.xx, n.x);
-//         n.x = max(floor(12.*n.x),3.);
-        n.x = round(mix(3.,10.,iFader3));
-        n.y = round(mix(3.,10.,iFader4));
+        fragCoord = caleid(fragCoord, c.yy, iResolution.xy, 15.*iFader3);
+//         float a = iResolution.x/iResolution.y;
+//         // vec2 uv = fragCoord/iResolution.yy-0.5*vec2(a, 1.0);
+//         vec2 uv = (fragCoord.xy -.5*iResolution.xy-iDial7)/iResolution.y;
+// //         rand(floor(.33*iTime)*c.xx, n.x);
+// //         n.x = max(floor(12.*n.x),3.);
+//         n.x = round(mix(3.,10.,iFader3));
+//         n.y = round(mix(3.,10.,iFader4));
 
-        vec2 rs = 1.*vec2(1.,pi)/(.1+n.xy), 
-            rp = vec2(length(uv), mod(9.*pi+atan(uv.y, uv.x), 2.*pi)),
-            drp = abs(mod(rp, rs)-.5*rs)+pi*c.yx,
-            rpj = rp-drp;
-        uv = drp.x*vec2(cos(drp.y), sin(drp.y));
+//         vec2 rs = 1.*vec2(1.,pi)/(.1+n.xy), 
+//             rp = vec2(length(uv), mod(9.*pi+atan(uv.y, uv.x), 2.*pi)),
+//             drp = abs(mod(rp, rs)-.5*rs)+pi*c.yx,
+//             rpj = rp-drp;
+//         uv = drp.x*vec2(cos(drp.y), sin(drp.y));
 
-        // if(round(rpj/rs).x == 2.) col.rgb = c.yxy;
-        // float phi = abs(mod(atan(uv.y, uv.x),pi/n.x)-.5*pi/n.x);
-        // uv = length(uv)*vec2(cos(phi), sin(phi));
+//         // if(round(rpj/rs).x == 2.) col.rgb = c.yxy;
+//         // float phi = abs(mod(atan(uv.y, uv.x),pi/n.x)-.5*pi/n.x);
+//         // uv = length(uv)*vec2(cos(phi), sin(phi));
         
-        fragCoord = (uv*iResolution.y + .5*iResolution.xy);
+//         fragCoord = (uv*iResolution.y + .5*iResolution.xy);
     }
     
     // // Voronoi tiles
@@ -717,5 +750,5 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord_ )
 
 void main()
 {
-    mainImage(gl_FragColor, gl_FragCoord.xy);
+    mainImage(out_color, gl_FragCoord.xy);
 }
